@@ -3,9 +3,19 @@ from typing import Any
 from urllib.parse import urljoin
 
 import httpx
+from pydantic import BaseModel, ConfigDict, ValidationError
 
+from .schemas import CampaignResponse, KeitaroOption, StreamResponse
 
 logger = logging.getLogger(__name__)
+
+
+class _KeitaroCampaign(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: int
+    name: str | None = None
+    state: str | None = None
 
 
 class KeitaroError(Exception):
@@ -75,6 +85,20 @@ class KeitaroClient:
 
     async def list(self, path: str) -> list[dict[str, Any]]:
         result = await self.request("GET", path)
+        items = self._list_items(result, path)
+        if path.strip("/") == "campaigns":
+            model = CampaignResponse
+            entity = "кампании"
+        else:
+            model = KeitaroOption
+            entity = "элемента справочника"
+        return [
+            self._validate_item(item, model, entity)
+            for item in items
+        ]
+
+    @staticmethod
+    def _list_items(result: Any, path: str) -> list[Any]:
         if isinstance(result, list):
             return result
         if isinstance(result, dict):
@@ -83,35 +107,40 @@ class KeitaroClient:
                     return result[key]
         raise KeitaroError(f"Keitaro вернул неожиданный список для {path}")
 
+    @staticmethod
+    def _validate_item(
+        item: Any,
+        model: type[BaseModel],
+        entity: str,
+    ) -> dict[str, Any]:
+        try:
+            return model.model_validate(item).model_dump(exclude_unset=True)
+        except ValidationError as exc:
+            raise KeitaroError(
+                f"Keitaro вернул некорректные данные для {entity}"
+            ) from exc
+
     async def get_campaign(self, campaign_id: int) -> dict[str, Any]:
         result = await self.request("GET", f"campaigns/{campaign_id}")
-        if not isinstance(result, dict):
-            raise KeitaroError("Keitaro вернул кампанию в неизвестном формате")
-        return result
+        return self._validate_item(result, _KeitaroCampaign, "кампанию")
 
     async def campaign_streams(self, campaign_id: int) -> list[dict[str, Any]]:
         result = await self.request(
             "GET", "streams", params={"campaign_id": campaign_id}
         )
-        if isinstance(result, list):
-            return result
-        if isinstance(result, dict):
-            for key in ("data", "items", "results"):
-                if isinstance(result.get(key), list):
-                    return result[key]
-        raise KeitaroError("Keitaro вернул потоки в неизвестном формате")
+        items = self._list_items(result, "streams")
+        return [
+            self._validate_item(item, StreamResponse, "потока")
+            for item in items
+        ]
 
     async def create_campaign(self, payload: dict[str, Any]) -> dict[str, Any]:
         result = await self.request("POST", "campaigns", json=payload)
-        if not isinstance(result, dict):
-            raise KeitaroError("Keitaro вернул кампанию в неизвестном формате")
-        return result
+        return self._validate_item(result, _KeitaroCampaign, "кампанию")
 
     async def create_stream(self, payload: dict[str, Any]) -> dict[str, Any]:
         result = await self.request("POST", "streams", json=payload)
-        if not isinstance(result, dict):
-            raise KeitaroError("Keitaro вернул поток в неизвестном формате")
-        return result
+        return self._validate_item(result, StreamResponse, "потока")
 
     async def delete_campaign(self, campaign_id: int) -> None:
         await self.request("DELETE", f"campaigns/{campaign_id}")
