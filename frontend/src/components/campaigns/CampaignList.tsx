@@ -1,6 +1,9 @@
+import clsx from "clsx";
 import { Layers3, LoaderCircle } from "lucide-react";
 import { Campaign } from "@/api";
+import { Typography } from "@/components/ui";
 import { isCampaignActive } from "@/utils/campaign";
+import { CampaignListButton } from "./CampaignListButton";
 
 type CampaignListProps = {
   campaigns: Campaign[];
@@ -19,33 +22,37 @@ export function CampaignList({
 }: CampaignListProps) {
   return (
     <div className="min-h-56 overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <div className="grid h-10 grid-cols-campaign items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-3 text-micro font-bold tracking-wider text-slate-400 sm:grid-cols-campaign-wide sm:gap-3 sm:px-4">
-        <span>КАМПАНИЯ</span><span>ID</span><span>ПОТОКИ</span><span className="hidden sm:block">СТАТУС</span>
+      <div className="grid h-10 grid-cols-campaign items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-3 sm:grid-cols-campaign-wide sm:gap-3 sm:px-4">
+        <Typography variant="micro" className="font-bold tracking-wider text-slate-400">КАМПАНИЯ</Typography>
+        <Typography variant="micro" className="font-bold tracking-wider text-slate-400">ID</Typography>
+        <Typography variant="micro" className="font-bold tracking-wider text-slate-400">ПОТОКИ</Typography>
+        <Typography variant="micro" className="hidden font-bold tracking-wider text-slate-400 sm:block">СТАТУС</Typography>
       </div>
       {loading && campaigns.length === 0 ? (
-        <div className="flex min-h-44 flex-col items-center justify-center gap-2 text-ui-sm text-slate-400">
-          <LoaderCircle className="animate-spin" size={22} />Загружаем кампании…
+        <div className="flex min-h-44 flex-col items-center justify-center gap-2 text-slate-400">
+          <LoaderCircle className="animate-spin" size={22} />
+          <Typography variant="uiSmall">Загружаем кампании…</Typography>
         </div>
       ) : campaigns.length === 0 ? (
-        <div className="flex min-h-44 flex-col items-center justify-center gap-2 text-ui-sm text-slate-400">
-          <Layers3 size={22} />Кампаний пока нет. Создайте первую.
+        <div className="flex min-h-44 flex-col items-center justify-center gap-2 text-slate-400">
+          <Layers3 size={22} />
+          <Typography variant="uiSmall">Кампаний пока нет. Создайте первую.</Typography>
         </div>
       ) : campaigns.map((campaign) => {
         const active = isCampaignActive(campaign);
-        const statusClass = campaign.state
-          ? active ? "text-emerald-600" : "text-slate-400"
-          : "text-slate-400";
-        const statusDotClass = campaign.state
-          ? active ? "bg-emerald-500" : "bg-slate-400"
-          : "bg-transparent";
+        const statusClass = clsx({
+          "text-emerald-600": Boolean(campaign.state) && active,
+          "text-slate-400": !campaign.state || !active,
+        });
+        const statusDotClass = clsx({
+          "bg-emerald-500": Boolean(campaign.state) && active,
+          "bg-slate-400": Boolean(campaign.state) && !active,
+          "bg-transparent": !campaign.state,
+        });
 
         return (
-          <button
-            className={`grid min-h-13 w-full grid-cols-campaign items-center gap-2 border-b border-slate-100 px-3 text-left text-ui text-slate-500 transition last:border-0 hover:bg-violet-50/50 sm:grid-cols-campaign-wide sm:gap-3 sm:px-4 ${
-              selectedId === campaign.id
-                ? "bg-violet-50/70 shadow-selected"
-                : "bg-white"
-            }`}
+          <CampaignListButton
+            selected={selectedId === campaign.id}
             key={campaign.id}
             onClick={() => onSelect(campaign.id)}
           >
@@ -53,17 +60,19 @@ export function CampaignList({
               <span className="grid size-7 shrink-0 place-items-center rounded-md bg-violet-50 text-violet-600">
                 <Layers3 size={16} />
               </span>
-              <strong className="truncate font-semibold text-slate-700">{campaign.name}</strong>
+              <Typography as="strong" variant="ui" className="truncate font-semibold text-slate-700">
+                {campaign.name}
+              </Typography>
             </span>
-            <span className="font-mono text-ui text-slate-400">#{campaign.id}</span>
-            <span>
+            <Typography variant="ui" className="font-mono text-slate-400">#{campaign.id}</Typography>
+            <Typography variant="ui">
               {campaign.streams?.length ?? (selectedId === campaign.id ? selectedStreamCount : "—")}
-            </span>
-            <span className={`hidden items-center gap-1.5 text-caption sm:flex ${statusClass}`}>
-              <i className={`size-1.5 rounded-full ${statusDotClass}`} />
+            </Typography>
+            <Typography as="span" variant="caption" className={clsx("hidden items-center gap-1.5 sm:flex", statusClass)}>
+              <i className={clsx("size-1.5 rounded-full", statusDotClass)} />
               {active ? "Активна" : campaign.state ? "Выключена" : "—"}
-            </span>
-          </button>
+            </Typography>
+          </CampaignListButton>
         );
       })}
     </div>
