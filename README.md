@@ -112,4 +112,4 @@ cd frontend
 npm run generate:api-types
 ```
 
-Команда обновляет `backend/openapi.json` и `frontend/src/api.generated.ts`. Закоммитьте оба файла при изменении API; CI проверяет их актуальность.
+Команда обновляет `backend/openapi.json` и `frontend/src/api/schema.generated.ts`. Закоммитьте оба файла при изменении API; CI проверяет их актуальность.
