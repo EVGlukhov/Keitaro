@@ -1,8 +1,9 @@
+import clsx from "clsx";
 import { FormEvent, useState } from "react";
 import { CircleHelp, LoaderCircle, Plus, Route, Trash2 } from "lucide-react";
 import { Campaign, Metadata, Stream } from "@/api";
 import { offerId, optionLabel } from "@/utils/campaign";
-import { Button, FormField, IconButton, SelectInput } from "@/components/ui";
+import { Button, FormField, IconButton, SelectInput, Typography } from "@/components/ui";
 
 type OfferEditorProps = {
   campaign: Campaign | null;
@@ -38,15 +39,17 @@ export function OfferEditor({
     <section className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div>
-          <div className="text-micro font-bold tracking-wider text-slate-400">РЕДАКТОР</div>
-          <h2 className="mt-1 max-w-60 truncate text-section font-bold text-slate-800">
+          <Typography as="div" variant="micro" className="font-bold tracking-wider text-slate-400">
+            РЕДАКТОР
+          </Typography>
+          <Typography as="h2" variant="section" className="mt-1 max-w-60 truncate font-bold text-slate-800">
             {campaign?.name ?? "Офферы кампании"}
-          </h2>
+          </Typography>
         </div>
         {campaign && (
-          <span className="rounded-md bg-slate-100 px-2 py-1 text-caption text-slate-500">
+          <Typography as="span" variant="caption" className="rounded-md bg-slate-100 px-2 py-1 text-slate-500">
             ID {campaign.id}
-          </span>
+          </Typography>
         )}
       </div>
 
@@ -55,10 +58,12 @@ export function OfferEditor({
           <div className="mb-3 grid size-11 place-items-center rounded-xl bg-violet-50 text-violet-600">
             <Route size={22} />
           </div>
-          <strong className="text-ui-sm font-semibold text-slate-700">Выберите кампанию</strong>
-          <p className="mt-1.5 max-w-48 text-ui leading-relaxed text-slate-400">
+          <Typography as="strong" variant="uiSmall" className="font-semibold text-slate-700">
+            Выберите кампанию
+          </Typography>
+          <Typography as="p" variant="ui" className="mt-1.5 max-w-48 leading-relaxed text-slate-400">
             Здесь появятся потоки и офферы выбранной кампании.
-          </p>
+          </Typography>
         </div>
       ) : (
         <>
@@ -73,11 +78,13 @@ export function OfferEditor({
                   onChange={(event) => setNewOfferId(event.target.value)}
                   required
                 >
-                  <option value="">Выберите оффер</option>
+                  <Typography as="option" variant="inherit" value="">
+                    Выберите оффер
+                  </Typography>
                   {(metadata?.offers ?? []).map((offer) => (
-                    <option key={offer.id} value={offer.id}>
+                    <Typography as="option" variant="inherit" key={offer.id} value={offer.id}>
                       {optionLabel(offer)} · #{offer.id}
-                    </option>
+                    </Typography>
                   ))}
                 </SelectInput>
                 <Button
@@ -95,11 +102,15 @@ export function OfferEditor({
           </form>
 
           <div>
-            <div className="grid grid-cols-stream gap-1.5 pb-2 pt-3 text-micro font-bold tracking-wider text-slate-400">
-              <span>ПОТОК</span><span>ОФФЕР</span><span />
+            <div className="grid grid-cols-stream gap-1.5 pb-2 pt-3">
+              <Typography variant="micro" className="font-bold tracking-wider text-slate-400">ПОТОК</Typography>
+              <Typography variant="micro" className="font-bold tracking-wider text-slate-400">ОФФЕР</Typography>
+              <span />
             </div>
             {streams.length === 0 ? (
-              <p className="py-4 text-center text-ui text-slate-400">У кампании нет потоков.</p>
+              <Typography as="p" variant="ui" className="py-4 text-center text-slate-400">
+                У кампании нет потоков.
+              </Typography>
             ) : streams.map((stream) => (
               <StreamRow
                 key={stream.id}
@@ -110,9 +121,11 @@ export function OfferEditor({
               />
             ))}
           </div>
-          <div className="mt-3 flex items-start gap-2 rounded-md bg-violet-50/70 px-2 py-2.5 text-caption leading-relaxed text-violet-800/70">
+          <div className="mt-3 flex items-start gap-2 rounded-md bg-violet-50/70 px-2 py-2.5">
             <CircleHelp size={15} className="shrink-0 text-violet-500" />
-            <span>Удаляются только потоки типа «оффер». Гео-поток кампании защищён.</span>
+            <Typography variant="caption" className="leading-relaxed text-violet-800/70">
+              Удаляются только потоки типа «оффер». Гео-поток кампании защищён.
+            </Typography>
           </div>
         </>
       )}
@@ -136,16 +149,16 @@ function StreamRow({
   const isOffer = stream.action_type === "offer";
 
   return (
-    <div className="grid min-h-10 grid-cols-stream items-center gap-1.5 border-b border-slate-100 text-caption last:border-0">
-      <span className="flex min-w-0 items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap text-slate-600">
-        <i className={`size-1.5 shrink-0 rounded-full ${isOffer ? "bg-emerald-500" : "bg-violet-500"}`} />
+    <div className="grid min-h-10 grid-cols-stream items-center gap-1.5 border-b border-slate-100 last:border-0">
+      <Typography as="span" variant="caption" className="flex min-w-0 items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap text-slate-600">
+        <i className={clsx("size-1.5 shrink-0 rounded-full", isOffer ? "bg-emerald-500" : "bg-violet-500")} />
         {stream.name ?? `Поток #${stream.id}`}
-      </span>
-      <span className="truncate text-slate-500">
+      </Typography>
+      <Typography variant="caption" className="truncate text-slate-500">
         {isOffer
           ? offer ? optionLabel(offer) : `Оффер #${id ?? "—"}`
-          : <span className="rounded bg-violet-50 px-1.5 py-1 text-micro text-violet-600">Гео / редирект</span>}
-      </span>
+          : <Typography variant="micro" className="rounded bg-violet-50 px-1.5 py-1 text-violet-600">Гео / редирект</Typography>}
+      </Typography>
       {isOffer ? (
         <IconButton
           className="border-0 bg-transparent text-slate-400 hover:bg-rose-50 hover:text-rose-600"

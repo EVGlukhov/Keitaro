@@ -1,8 +1,14 @@
+import { Typography } from "@/components/ui";
+
 export function AppFooter() {
   return (
-    <footer className="py-7 text-center text-caption text-slate-400">
-      Keitaro Studio <span className="mx-1 text-slate-300">•</span> Тестовое приложение
-      <span className="mx-1 text-slate-300">•</span> Данные синхронизируются с Keitaro
+    <footer className="py-7 text-center text-slate-400">
+      <Typography variant="caption">
+        Keitaro Studio <Typography variant="inherit" className="mx-1 text-slate-300">•</Typography>
+        Тестовое приложение
+        <Typography variant="inherit" className="mx-1 text-slate-300">•</Typography>
+        Данные синхронизируются с Keitaro
+      </Typography>
     </footer>
   );
 }

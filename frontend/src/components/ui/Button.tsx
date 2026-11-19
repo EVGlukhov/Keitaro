@@ -1,5 +1,7 @@
+import clsx from "clsx";
 import { ButtonHTMLAttributes, ReactNode } from "react";
 import { LoaderCircle } from "lucide-react";
+import { Typography } from "./Typography";
 
 type ButtonVariant = "primary" | "secondary" | "quiet";
 type ButtonSize = "small" | "medium";
@@ -21,8 +23,13 @@ const variants: Record<ButtonVariant, string> = {
 };
 
 const sizes: Record<ButtonSize, string> = {
-  small: "h-9 gap-1.5 px-3 text-ui",
-  medium: "h-10 gap-2 px-4 text-xs",
+  small: "h-9 px-3",
+  medium: "h-10 px-4",
+};
+
+const textGaps: Record<ButtonSize, string> = {
+  small: "gap-1.5",
+  medium: "gap-2",
 };
 
 export function Button({
@@ -36,12 +43,22 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-lg font-semibold transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant]} ${sizes[size]} ${className}`}
+      className={clsx(
+        "inline-flex items-center justify-center rounded-lg font-semibold transition focus:outline-none focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60",
+        variants[variant],
+        sizes[size],
+        className,
+      )}
       disabled={disabled || loading}
       {...props}
     >
       {loading && <LoaderCircle className="animate-spin" size={15} />}
-      {children}
+      <Typography
+        variant={size === "small" ? "ui" : "body"}
+        className={clsx("inline-flex items-center", textGaps[size])}
+      >
+        {children}
+      </Typography>
     </button>
   );
 }
