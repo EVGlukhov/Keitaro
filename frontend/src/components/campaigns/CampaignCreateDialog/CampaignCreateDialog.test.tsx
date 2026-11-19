@@ -25,7 +25,11 @@ describe("CampaignCreateDialog", () => {
       />,
     );
 
-    await user.type(screen.getByRole("textbox", { name: "Название кампании" }), " Spring test ");
+    const campaignName = screen.getByRole("textbox", {
+      name: "Название кампании",
+    });
+    expect(campaignName).toHaveAttribute("autocomplete", "off");
+    await user.type(campaignName, " Spring test ");
     await user.type(screen.getByRole("textbox", { name: "Гео-код страны" }), "us");
     await user.selectOptions(screen.getByRole("combobox", { name: "Оффер" }), "8");
     await user.selectOptions(screen.getByRole("combobox", { name: "Домен" }), "2");
