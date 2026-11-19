@@ -48,7 +48,13 @@ export function CampaignCreateForm({
   return (
     <form onSubmit={handleSubmit}>
       <FormField label="Название кампании">
-        <TextInput name="name" placeholder="Например, US — весенняя акция" required maxLength={255} />
+        <TextInput
+          name="name"
+          placeholder="Например, US — весенняя акция"
+          autoComplete="off"
+          required
+          maxLength={255}
+        />
       </FormField>
       <div className="mt-4 grid grid-cols-1 gap-x-3 gap-y-4 sm:grid-cols-2">
         <FormField label="Гео-код страны">
