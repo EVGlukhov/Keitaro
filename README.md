@@ -28,6 +28,25 @@ MVP-обёртка над Keitaro: создание кампании с гео-�
 
 Keitaro URL и API key хранятся только в окружении backend. Для реального аккаунта сверяйте формат потока и фильтра `country` с OpenAPI-документацией конкретной версии Keitaro.
 
+## Запуск через Docker Compose
+
+Установите Docker с поддержкой Compose. Создайте в корне `.env` с доступами к Keitaro:
+
+```env
+KEITARO_URL=https://your-tracker.example
+KEITARO_API_KEY=your-api-key
+```
+
+Затем из корня проекта выполните:
+
+```bash
+docker compose up --build
+```
+
+Интерфейс будет доступен по `http://localhost:5173`, а Swagger UI — по `http://localhost:8000/docs`. SQLite-база сохраняется в volume `backend_data`.
+
+Остановить контейнеры можно командой `docker compose down`; для удаления также базы выполните `docker compose down -v`.
+
 ## Тесты
 
 Backend unit- и API-тесты выполняются на встроенном `unittest`; Keitaro и база данных в API-тестах заменены тестовыми реализациями:
