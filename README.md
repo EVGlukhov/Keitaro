@@ -30,14 +30,18 @@ Keitaro URL и API key хранятся только в окружении backe
 
 ## Запуск через Docker Compose
 
-Установите Docker с поддержкой Compose. Создайте в корне `.env` с доступами к Keitaro:
+Установите Docker с поддержкой Compose. Скопируйте пример и укажите в корневом `.env` доступы к Keitaro:
+
+```bash
+cp .env.example .env
+```
 
 ```env
 KEITARO_URL=https://your-tracker.example
 KEITARO_API_KEY=your-api-key
 ```
 
-Затем из корня проекта выполните:
+Запустите оба сервиса из корня проекта:
 
 ```bash
 docker compose up --build
