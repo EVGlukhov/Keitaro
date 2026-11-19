@@ -85,8 +85,10 @@ class KeitaroClient:
         except ValueError as exc:
             raise KeitaroError("Keitaro вернул ответ в неизвестном формате") from exc
 
-    async def list(self, path: str) -> list[dict[str, Any]]:
-        result = await self.request("GET", path)
+    async def list(
+        self, path: str, params: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
+        result = await self.request("GET", path, params=params)
         items = self._list_items(result, path)
         if path.strip("/") == "campaigns":
             model = CampaignResponse
@@ -127,9 +129,7 @@ class KeitaroClient:
         return self._validate_item(result, _KeitaroCampaign, "кампанию")
 
     async def campaign_streams(self, campaign_id: int) -> list[dict[str, Any]]:
-        result = await self.request(
-            "GET", "streams", params={"campaign_id": campaign_id}
-        )
+        result = await self.request("GET", f"campaigns/{campaign_id}/streams")
         items = self._list_items(result, "streams")
         return [
             self._validate_item(item, StreamResponse, "потока")
