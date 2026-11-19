@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw as RefreshCwIcon } from "lucide-react";
 import { IconButton, Typography } from "@/components/ui";
 
 type TopBarProps = {
@@ -27,7 +27,7 @@ export function TopBar({ connected, loading, onRefresh }: TopBarProps) {
           {connected === null ? "Подключение…" : connected ? "Keitaro подключён" : "Нет подключения"}
         </Typography>
         <IconButton label="Обновить данные" onClick={onRefresh} disabled={loading}>
-          <RefreshCw size={17} className={clsx({ "animate-spin": loading })} />
+          <RefreshCwIcon size={17} className={clsx({ "animate-spin": loading })} />
         </IconButton>
       </div>
     </header>

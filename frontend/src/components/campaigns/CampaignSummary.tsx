@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Globe2, Layers3, Route } from "lucide-react";
+import { Globe2 as Globe2Icon, Layers3 as Layers3Icon, Route as RouteIcon } from "lucide-react";
 import { ReactNode } from "react";
 import { Campaign } from "@/api";
 import { Typography } from "@/components/ui";
@@ -59,7 +59,7 @@ export function CampaignSummary({
         label="Всего кампаний"
         value={campaignCount}
         detail="В аккаунте Keitaro"
-        icon={<Layers3 size={17} />}
+        icon={<Layers3Icon size={17} />}
         iconClass="bg-violet-50 text-violet-600"
         largeValue
       />
@@ -67,14 +67,14 @@ export function CampaignSummary({
         label="Выбранная кампания"
         value={selectedCampaign?.name ?? "—"}
         detail={selectedCampaign ? `ID ${selectedCampaign.id}` : "Выберите кампанию ниже"}
-        icon={<Route size={17} />}
+        icon={<RouteIcon size={17} />}
         iconClass="bg-blue-50 text-blue-600"
       />
       <SummaryCard
         label="Офферы в редакторе"
         value={offerCount}
         detail="В выбранной кампании"
-        icon={<Globe2 size={17} />}
+        icon={<Globe2Icon size={17} />}
         iconClass="bg-emerald-50 text-emerald-600"
         largeValue
       />

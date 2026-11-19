@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { ButtonHTMLAttributes, ReactNode } from "react";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle as LoaderCircleIcon } from "lucide-react";
 import { Typography } from "./Typography";
 
 type ButtonVariant = "primary" | "secondary" | "quiet";
@@ -52,7 +52,7 @@ export function Button({
       disabled={disabled || loading}
       {...props}
     >
-      {loading && <LoaderCircle className="animate-spin" size={15} />}
+      {loading && <LoaderCircleIcon className="animate-spin" size={15} />}
       <Typography
         variant={size === "small" ? "ui" : "body"}
         className={clsx("inline-flex items-center", textGaps[size])}

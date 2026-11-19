@@ -1,10 +1,10 @@
 import clsx from "clsx";
 import {
-  Activity,
-  ArrowUpRight,
-  CircleHelp,
-  Layers3,
-  Radio,
+  Activity as ActivityIcon,
+  ArrowUpRight as ArrowUpRightIcon,
+  CircleHelp as CircleHelpIcon,
+  Layers3 as Layers3Icon,
+  Radio as RadioIcon,
 } from "lucide-react";
 import { Typography } from "@/components/ui";
 
@@ -25,7 +25,7 @@ export function Sidebar({ campaignCount, connected }: SidebarProps) {
     <aside className="hidden min-h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white px-4 py-7 lg:flex">
       <div className="flex items-center gap-2.5 px-2">
         <div className="grid size-8 place-items-center rounded-lg bg-violet-600 text-white">
-          <Activity size={20} strokeWidth={2.5} />
+          <ActivityIcon size={20} strokeWidth={2.5} />
         </div>
         <Typography variant="large" className="font-semibold tracking-tight text-slate-900">
           keitaro<Typography variant="inherit" className="font-medium text-violet-500">studio</Typography>
@@ -50,21 +50,21 @@ export function Sidebar({ campaignCount, connected }: SidebarProps) {
         УПРАВЛЕНИЕ
       </Typography>
       <div className="mb-1 flex items-center gap-2.5 rounded-lg bg-violet-50 px-3 py-2.5 font-semibold text-violet-700">
-        <Layers3 size={17} />
+        <Layers3Icon size={17} />
         <Typography variant="body">Кампании</Typography>
         <Typography variant="ui" className="ml-auto rounded-full bg-violet-100 px-2 py-0.5 text-violet-700">
           {campaignCount}
         </Typography>
       </div>
       <div className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-slate-400">
-        <Radio size={17} />
+        <RadioIcon size={17} />
         <Typography variant="body">Источники и офферы</Typography>
       </div>
 
       <div className="mt-auto">
         <div className="rounded-lg border border-slate-200 p-3">
           <div className="mb-2 grid size-7 place-items-center rounded-lg bg-violet-50 text-violet-600">
-            <CircleHelp size={17} />
+            <CircleHelpIcon size={17} />
           </div>
           <Typography as="strong" variant="uiSmall" className="font-semibold">Нужна помощь?</Typography>
           <Typography as="p" variant="ui" className="mb-2 mt-1 leading-relaxed text-slate-500">
@@ -77,7 +77,7 @@ export function Sidebar({ campaignCount, connected }: SidebarProps) {
             rel="noreferrer"
           >
             <Typography variant="ui">Документация API</Typography>
-            <ArrowUpRight size={13} />
+            <ArrowUpRightIcon size={13} />
           </a>
         </div>
         <div className="mt-4 flex items-center gap-2.5 border-t border-slate-100 px-1 pt-4">

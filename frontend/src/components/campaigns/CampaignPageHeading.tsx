@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus as PlusIcon } from "lucide-react";
 import { Button, Typography } from "@/components/ui";
 
 type CampaignPageHeadingProps = {
@@ -22,7 +22,7 @@ export function CampaignPageHeading({ canCreate, onCreate }: CampaignPageHeading
         </Typography>
       </div>
       <Button onClick={onCreate} disabled={!canCreate}>
-        <Plus size={17} /> Создать кампанию
+        <PlusIcon size={17} /> Создать кампанию
       </Button>
     </div>
   );
