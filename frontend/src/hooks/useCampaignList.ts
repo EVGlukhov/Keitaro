@@ -1,4 +1,4 @@
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { Campaign } from "@/api";
 import type { SelectInputOption } from "@/components/ui";
 import {
@@ -21,29 +21,88 @@ const sortOptions: readonly SelectInputOption[] = [
   { value: CAMPAIGN_SORT.NAME, label: "По названию" },
 ];
 
-export function useCampaignList(campaigns: Campaign[]) {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<CampaignStatusFilter>(
-    CAMPAIGN_STATUS_FILTER.ALL,
+type CampaignListFilters = {
+  search: string;
+  statusFilter: CampaignStatusFilter;
+  sort: CampaignSort;
+};
+
+function readFiltersFromUrl(): CampaignListFilters {
+  const params = new URLSearchParams(window.location.search);
+  const statusFilter = Object.values(CAMPAIGN_STATUS_FILTER).find(
+    (value) => value === params.get("status"),
   );
-  const [sort, setSort] = useState<CampaignSort>(CAMPAIGN_SORT.ID_ASC);
+  const sort = Object.values(CAMPAIGN_SORT).find(
+    (value) => value === params.get("sort"),
+  );
+
+  return {
+    search: params.get("q") ?? "",
+    statusFilter: statusFilter ?? CAMPAIGN_STATUS_FILTER.ALL,
+    sort: sort ?? CAMPAIGN_SORT.ID_ASC,
+  };
+}
+
+function writeFiltersToUrl(
+  filters: CampaignListFilters,
+  mode: "push" | "replace",
+) {
+  const params = new URLSearchParams(window.location.search);
+  if (filters.search) params.set("q", filters.search);
+  else params.delete("q");
+  if (filters.statusFilter === CAMPAIGN_STATUS_FILTER.ALL) {
+    params.delete("status");
+  } else {
+    params.set("status", filters.statusFilter);
+  }
+  if (filters.sort === CAMPAIGN_SORT.ID_ASC) params.delete("sort");
+  else params.set("sort", filters.sort);
+
+  const query = params.toString();
+  const url = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+  if (mode === "push") window.history.pushState(null, "", url);
+  else window.history.replaceState(null, "", url);
+}
+
+export function useCampaignList(campaigns: Campaign[]) {
+  const [filters, setFilters] = useState(readFiltersFromUrl);
+  const { search, statusFilter, sort } = filters;
+
+  useEffect(() => {
+    function handlePopState() {
+      setFilters(readFiltersFromUrl());
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   function handleSearchChange(event: ChangeEvent<HTMLInputElement>) {
-    setSearch(event.currentTarget.value);
+    const nextFilters = { ...filters, search: event.currentTarget.value };
+    setFilters(nextFilters);
+    writeFiltersToUrl(nextFilters, "replace");
   }
 
   function handleStatusFilterChange(event: ChangeEvent<HTMLSelectElement>) {
     const value = Object.values(CAMPAIGN_STATUS_FILTER).find(
       (filter) => filter === event.currentTarget.value,
     );
-    if (value) setStatusFilter(value);
+    if (value && value !== statusFilter) {
+      const nextFilters = { ...filters, statusFilter: value };
+      setFilters(nextFilters);
+      writeFiltersToUrl(nextFilters, "push");
+    }
   }
 
   function handleSortChange(event: ChangeEvent<HTMLSelectElement>) {
     const value = Object.values(CAMPAIGN_SORT).find(
       (sortOption) => sortOption === event.currentTarget.value,
     );
-    if (value) setSort(value);
+    if (value && value !== sort) {
+      const nextFilters = { ...filters, sort: value };
+      setFilters(nextFilters);
+      writeFiltersToUrl(nextFilters, "push");
+    }
   }
 
   const visibleCampaigns = useMemo(() => {
