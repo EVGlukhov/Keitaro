@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #7065e4;
+  --container-content: 90rem;
+  --container-dialog: 32.5rem;
+  --container-summary: 80%;
+  --grid-template-columns-campaign: minmax(0, 1.3fr) auto auto;
+  --grid-template-columns-campaign-wide: minmax(0, 1.8fr) 0.55fr 0.55fr 0.75fr;
+  --grid-template-columns-dashboard: minmax(0, 1.35fr) minmax(310px, 0.9fr);
+  --grid-template-columns-stream: 1.2fr 1fr 24px;
+  --shadow-selected: inset 2px 0 0 var(--color-brand);
+  --text-micro: 0.5rem;
+  --text-caption: 0.5625rem;
+  --text-ui: 0.625rem;
+  --text-ui-sm: 0.6875rem;
+  --text-section: 0.8125rem;
+  --tracking-label: 0.12em;
+}
