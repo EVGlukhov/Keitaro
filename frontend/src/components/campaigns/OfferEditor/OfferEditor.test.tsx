@@ -48,6 +48,29 @@ describe("OfferEditor", () => {
     await user.click(screen.getByRole("button", { name: "Добавить" }));
 
     expect(onAddOffer).toHaveBeenCalledWith(9);
+    expect(screen.getByRole("combobox", { name: /Добавить оффер/ })).toHaveValue("");
+  });
+
+  it("keeps the selected offer when the add request fails", async () => {
+    const user = userEvent.setup();
+    const onAddOffer = vi.fn().mockResolvedValue(false);
+    render(
+      <OfferEditor
+        campaign={campaign}
+        metadata={metadata}
+        saving={false}
+        onAddOffer={onAddOffer}
+        onRemoveOffer={vi.fn().mockResolvedValue(true)}
+      />,
+    );
+
+    const offerSelect = screen.getByRole("combobox", { name: /Добавить оффер/ });
+    expect(screen.getByRole("button", { name: "Добавить" })).toBeDisabled();
+    await user.selectOptions(offerSelect, "9");
+    await user.click(screen.getByRole("button", { name: "Добавить" }));
+
+    expect(onAddOffer).toHaveBeenCalledWith(9);
+    expect(offerSelect).toHaveValue("9");
   });
 
   it("confirms deletion in a dialog and never offers to remove geo streams", async () => {
