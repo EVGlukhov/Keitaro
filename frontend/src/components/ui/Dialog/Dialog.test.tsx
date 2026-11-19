@@ -43,6 +43,39 @@ describe("Dialog", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it("uses its accessible description and skips hidden controls while trapping focus", async () => {
+    const user = userEvent.setup();
+    render(
+      <Dialog
+        labelledBy="dialog-title"
+        describedBy="dialog-description"
+        onClose={vi.fn()}
+      >
+        <h2 id="dialog-title">Dialog title</h2>
+        <p id="dialog-description">Dialog instructions</p>
+        <button>First action</button>
+        <button hidden>Hidden action</button>
+        <button>Last action</button>
+      </Dialog>,
+    );
+
+    expect(
+      screen.getByRole("dialog", {
+        name: "Dialog title",
+        description: "Dialog instructions",
+      }),
+    ).toBeInTheDocument();
+
+    const firstAction = screen.getByRole("button", { name: "First action" });
+    const lastAction = screen.getByRole("button", { name: "Last action" });
+    expect(firstAction).toHaveFocus();
+
+    await user.tab();
+    expect(lastAction).toHaveFocus();
+    await user.tab();
+    expect(firstAction).toHaveFocus();
+  });
+
   it("restores focus to the previously active element on unmount", () => {
     const trigger = document.createElement("button");
     trigger.textContent = "Open dialog";

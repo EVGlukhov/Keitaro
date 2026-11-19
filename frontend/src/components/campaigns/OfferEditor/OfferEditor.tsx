@@ -99,6 +99,7 @@ export function OfferEditor({
       {streamToRemove && (
         <Dialog
           labelledBy="remove-offer-title"
+          describedBy="remove-offer-description"
           onClose={cancelRemoval}
         >
           <Typography
@@ -109,7 +110,12 @@ export function OfferEditor({
           >
             Удалить оффер?
           </Typography>
-          <Typography as="p" variant="uiSmall" className="mt-2 text-slate-500">
+          <Typography
+            as="p"
+            variant="uiSmall"
+            id="remove-offer-description"
+            className="mt-2 text-slate-500"
+          >
             Поток «{streamToRemove.name ?? "оффер"}» будет удалён из кампании.
           </Typography>
           <div className="mt-6 flex justify-end gap-2">

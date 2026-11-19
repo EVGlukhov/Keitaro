@@ -17,7 +17,11 @@ export function CampaignCreateDialog({
   onCreate,
 }: CampaignCreateDialogProps) {
   return (
-    <Dialog labelledBy="modal-title" onClose={onClose}>
+    <Dialog
+      labelledBy="modal-title"
+      describedBy="create-campaign-description"
+      onClose={onClose}
+    >
       <div className="flex items-start justify-between">
         <div>
           <Typography as="span" variant="caption" className="flex items-center gap-2 font-bold tracking-label text-slate-500">
@@ -33,7 +37,12 @@ export function CampaignCreateDialog({
         </IconButton>
       </div>
 
-      <Typography as="p" variant="uiSmall" className="mb-5 mt-2 leading-relaxed text-slate-500">
+      <Typography
+        as="p"
+        variant="uiSmall"
+        id="create-campaign-description"
+        className="mb-5 mt-2 leading-relaxed text-slate-500"
+      >
         Будут созданы два потока: гео-фильтр на Google и поток выбранного оффера.
       </Typography>
       <CampaignCreateForm

@@ -3,6 +3,7 @@ import styles from "./Dialog.module.css";
 
 type DialogProps = {
   labelledBy: string;
+  describedBy?: string;
   onClose: () => void;
   children: ReactNode;
 };
@@ -16,18 +17,30 @@ const focusableSelector = [
   "[tabindex]:not([tabindex='-1'])",
 ].join(", ");
 
-export function Dialog({ labelledBy, onClose, children }: DialogProps) {
+function getFocusableElements(dialog: HTMLElement) {
+  return Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+    (element) => !element.closest("[hidden], [inert], [aria-hidden='true']"),
+  );
+}
+
+export function Dialog({
+  labelledBy,
+  describedBy,
+  onClose,
+  children,
+}: DialogProps) {
   const dialogRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const previousFocus = document.activeElement;
     const dialog = dialogRef.current;
+    const focusableElements = dialog ? getFocusableElements(dialog) : [];
     const initialFocus =
-      dialog?.querySelector<HTMLElement>("[autofocus]") ??
-      dialog?.querySelector<HTMLElement>(
-        "input:not([disabled]), select:not([disabled]), textarea:not([disabled])",
+      focusableElements.find((element) => element.hasAttribute("autofocus")) ??
+      focusableElements.find((element) =>
+        element.matches("input, select, textarea"),
       ) ??
-      dialog?.querySelector<HTMLElement>(focusableSelector) ??
+      focusableElements[0] ??
       dialog;
 
     initialFocus?.focus();
@@ -50,9 +63,7 @@ export function Dialog({ labelledBy, onClose, children }: DialogProps) {
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    const focusableElements = Array.from(
-      dialog.querySelectorAll<HTMLElement>(focusableSelector),
-    );
+    const focusableElements = getFocusableElements(dialog);
     const first = focusableElements[0];
     const last = focusableElements[focusableElements.length - 1];
 
@@ -88,6 +99,7 @@ export function Dialog({ labelledBy, onClose, children }: DialogProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
         tabIndex={-1}
         onKeyDown={handleKeyDown}
       >
