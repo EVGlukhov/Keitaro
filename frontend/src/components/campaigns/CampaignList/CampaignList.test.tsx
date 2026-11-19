@@ -2,6 +2,11 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CampaignList } from "./CampaignList";
+import {
+  CAMPAIGN_SORT,
+  CAMPAIGN_STATE,
+  CAMPAIGN_STATUS_FILTER,
+} from "@/constants/campaign";
 
 describe("CampaignList", () => {
   it("shows campaigns and selects the clicked campaign", async () => {
@@ -10,7 +15,12 @@ describe("CampaignList", () => {
     render(
       <CampaignList
         campaigns={[
-          { id: 41, name: "Test campaign", state: "active", streams: [{ id: 100 }] },
+          {
+            id: 41,
+            name: "Test campaign",
+            state: CAMPAIGN_STATE.ACTIVE,
+            streams: [{ id: 100 }],
+          },
         ]}
         loading={false}
         selectedId={null}
@@ -42,7 +52,7 @@ describe("CampaignList", () => {
   it("marks the selected campaign button", () => {
     render(
       <CampaignList
-        campaigns={[{ id: 41, name: "Test campaign", state: "active" }]}
+        campaigns={[{ id: 41, name: "Test campaign", state: CAMPAIGN_STATE.ACTIVE }]}
         loading={false}
         selectedId={41}
         selectedStreamCount={0}
@@ -61,9 +71,9 @@ describe("CampaignList", () => {
     render(
       <CampaignList
         campaigns={[
-          { id: 41, name: "Spring active", state: "active" },
+          { id: 41, name: "Spring active", state: CAMPAIGN_STATE.ACTIVE },
           { id: 42, name: "Spring paused", state: "disabled" },
-          { id: 43, name: "Summer active", state: "active" },
+          { id: 43, name: "Summer active", state: CAMPAIGN_STATE.ACTIVE },
         ]}
         loading={false}
         selectedId={null}
@@ -73,7 +83,10 @@ describe("CampaignList", () => {
     );
 
     await user.type(screen.getByRole("searchbox", { name: "Поиск кампаний" }), "spring");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Фильтр по статусу" }), "active");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Фильтр по статусу" }),
+      CAMPAIGN_STATUS_FILTER.ACTIVE,
+    );
 
     expect(screen.getByRole("button", { name: /Spring active/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Spring paused/ })).not.toBeInTheDocument();
@@ -89,8 +102,8 @@ describe("CampaignList", () => {
     render(
       <CampaignList
         campaigns={[
-          { id: 9, name: "Zeta", state: "active" },
-          { id: 3, name: "Alpha", state: "active" },
+          { id: 9, name: "Zeta", state: CAMPAIGN_STATE.ACTIVE },
+          { id: 3, name: "Alpha", state: CAMPAIGN_STATE.ACTIVE },
         ]}
         loading={false}
         selectedId={null}
@@ -100,13 +113,13 @@ describe("CampaignList", () => {
     );
 
     const sort = screen.getByRole("combobox", { name: "Сортировка кампаний" });
-    await user.selectOptions(sort, "name");
+    await user.selectOptions(sort, CAMPAIGN_SORT.NAME);
     expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
       expect.stringContaining("Alpha"),
       expect.stringContaining("Zeta"),
     ]);
 
-    await user.selectOptions(sort, "id-desc");
+    await user.selectOptions(sort, CAMPAIGN_SORT.ID_DESC);
     expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
       expect.stringContaining("Zeta"),
       expect.stringContaining("Alpha"),
