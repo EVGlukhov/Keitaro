@@ -82,6 +82,18 @@ cd backend
 python -m unittest discover -s tests -v
 ```
 
+Для отчёта о покрытии и проверки уязвимостей backend-зависимостей установите dev-зависимости:
+
+```bash
+cd backend
+python -m pip install -r requirements-dev.txt
+coverage run --data-file=/tmp/keitaro-coverage --branch --source=app -m unittest discover -s tests -v
+coverage report --data-file=/tmp/keitaro-coverage --fail-under=75
+pip-audit -r requirements.txt
+```
+
+Для проверки frontend-зависимостей выполните `npm audit --audit-level=high` из каталога `frontend`. Эти проверки также запускаются в CI; Dependabot еженедельно проверяет обновления Python, npm и GitHub Actions.
+
 Для frontend unit- и браузерных e2e-тестов установите зависимости и браузер Playwright один раз:
 
 ```bash
