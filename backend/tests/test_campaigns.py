@@ -52,11 +52,23 @@ class CampaignTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result["id"], 41)
         self.assertEqual(len(client.streams), 2)
+        self.assertEqual(client.streams[0]["schema"], "redirect")
         self.assertEqual(client.streams[0]["filters"][0]["payload"], ["US"])
         self.assertEqual(client.streams[0]["type"], "regular")
         self.assertEqual(client.streams[0]["action_options"]["url"], "https://www.google.com")
-        self.assertEqual(client.streams[1]["action_options"]["offer_id"], 8)
+        self.assertEqual(client.streams[1]["schema"], "landings")
+        self.assertEqual(client.streams[1]["action_type"], "http")
+        self.assertEqual(
+            client.streams[1]["offers"],
+            [{"offer_id": 8, "share": 100, "state": "active"}],
+        )
         self.assertEqual(client.streams[1]["type"], "default")
+        self.assertRegex(
+            client.campaign_payload["alias"],
+            r"^test-campaign-[0-9a-f]{8}$",
+        )
+        self.assertEqual(client.campaign_payload["group_id"], "3")
+        self.assertEqual(client.campaign_payload["type"], "position")
         self.assertEqual(client.campaign_payload["domain_id"], 2)
         db.commit.assert_called_once()
 
@@ -88,12 +100,13 @@ class CampaignTests(unittest.IsolatedAsyncioTestCase):
         result = await CampaignService(client).add_offer(41, OfferCreate(offer_id=9))
 
         self.assertEqual(result["position"], 4)
-        self.assertEqual(result["action_options"]["offer_id"], 9)
+        self.assertEqual(result["schema"], "landings")
+        self.assertEqual(result["offers"][0]["offer_id"], 9)
 
     async def test_delete_rejects_non_offer_stream(self):
         client = FakeKeitaro()
         client.streams = [
-            {"id": 1, "campaign_id": 41, "action_type": "http"}
+            {"id": 1, "campaign_id": 41, "schema": "redirect", "action_type": "http"}
         ]
 
         with self.assertRaises(InvalidCampaignOperationError):
@@ -104,8 +117,13 @@ class CampaignTests(unittest.IsolatedAsyncioTestCase):
     async def test_delete_offer_removes_only_matching_stream(self):
         client = FakeKeitaro()
         client.streams = [
-            {"id": 1, "campaign_id": 41, "action_type": "offer"},
-            {"id": 2, "campaign_id": 41, "action_type": "http"},
+            {
+                "id": 1,
+                "campaign_id": 41,
+                "schema": "landings",
+                "offers": [{"offer_id": 8, "share": 100, "state": "active"}],
+            },
+            {"id": 2, "campaign_id": 41, "schema": "redirect", "action_type": "http"},
         ]
 
         result = await CampaignService(client).delete_offer(41, 1)

@@ -40,6 +40,14 @@ class KeitaroOption(BaseModel):
     name: str | None = None
 
 
+class StreamOfferResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    offer_id: int
+    share: int | None = None
+    state: str | None = None
+
+
 class StreamResponse(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -48,6 +56,7 @@ class StreamResponse(BaseModel):
     position: int | None = None
     action_type: str | None = None
     action_options: dict[str, Any] | None = None
+    offers: list[StreamOfferResponse] | None = None
 
 
 class CampaignResponse(BaseModel):

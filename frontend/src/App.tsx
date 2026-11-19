@@ -13,6 +13,7 @@ import {
 } from "@/components";
 import { useAppSelector } from "@/store/hooks";
 import { useCampaignPageController } from "@/hooks/useCampaignPageController";
+import { countOffers } from "@/utils/campaign";
 
 export default function App() {
   const page = useCampaignPageController();
@@ -34,7 +35,7 @@ export default function App() {
   } = useAppSelector((state) => state.campaigns);
   const [createOpen, setCreateOpen] = useState(false);
   const streams = selectedCampaign?.streams ?? [];
-  const offerCount = streams.filter((stream) => stream.action_type === "offer").length;
+  const offerCount = countOffers(streams);
 
   return (
     <main className="flex min-h-screen bg-slate-50 font-sans text-slate-900">

@@ -21,8 +21,10 @@ class FakeKeitaro:
         self.next_campaign_id = 41
         self.next_stream_id = 100
         self.fail_campaign_list = False
+        self.list_calls: list[tuple[str, dict | None]] = []
 
-    async def list(self, path: str):
+    async def list(self, path: str, params: dict | None = None):
+        self.list_calls.append((path, params))
         if path == "campaigns" and self.fail_campaign_list:
             raise KeitaroError("Keitaro is unavailable")
         if path == "campaigns":
@@ -90,6 +92,16 @@ class CampaignApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "ok"})
 
+    def test_metadata_uses_campaign_group_filter(self):
+        response = self.client.get("/api/metadata")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(("groups", {"type": "campaigns"}), self.keitaro.list_calls)
+        self.assertEqual(
+            {path for path, _ in self.keitaro.list_calls},
+            {"domains", "groups", "traffic_sources", "offers"},
+        )
+
     def test_create_add_and_delete_offer_workflow(self):
         response = self.client.post(
             "/api/campaigns",
@@ -106,8 +118,10 @@ class CampaignApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         campaign = response.json()
         self.assertEqual(campaign["name"], "Spring campaign")
+        self.assertEqual(campaign["streams"][0]["schema"], "redirect")
         self.assertEqual(campaign["streams"][0]["filters"][0]["payload"], ["US"])
-        self.assertEqual(campaign["streams"][1]["action_options"]["offer_id"], 8)
+        self.assertEqual(campaign["streams"][1]["schema"], "landings")
+        self.assertEqual(campaign["streams"][1]["offers"][0]["offer_id"], 8)
 
         added = self.client.post(
             "/api/campaigns/41/offers",
@@ -115,6 +129,7 @@ class CampaignApiTests(unittest.TestCase):
         )
         self.assertEqual(added.status_code, 201)
         self.assertEqual(added.json()["position"], 3)
+        self.assertEqual(added.json()["offers"][0]["offer_id"], 9)
 
         details = self.client.get("/api/campaigns/41")
         self.assertEqual(len(details.json()["streams"]), 3)
