@@ -26,6 +26,27 @@ class KeitaroClientTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(await client.list("offers"), [{"id": 8}])
             self.assertEqual(await client.list("domains"), [{"id": 2}])
 
+    async def test_list_passes_query_parameters_to_keitaro(self):
+        requests: list[httpx.Request] = []
+
+        def capture_request(request: httpx.Request) -> httpx.Response:
+            requests.append(request)
+            return httpx.Response(200, json=[{"id": 3, "name": "Campaigns"}])
+
+        transport = httpx.MockTransport(capture_request)
+        async with httpx.AsyncClient(transport=transport) as http_client:
+            client = KeitaroClient(
+                "https://tracker.test",
+                "secret-api-key",
+                http_client=http_client,
+            )
+
+            result = await client.list("groups", params={"type": "campaigns"})
+
+        self.assertEqual(result, [{"id": 3, "name": "Campaigns"}])
+        self.assertEqual(requests[0].url.path, "/admin_api/v1/groups")
+        self.assertEqual(dict(requests[0].url.params), {"type": "campaigns"})
+
     async def test_empty_success_response_returns_none(self):
         transport = httpx.MockTransport(lambda _: httpx.Response(204))
         async with httpx.AsyncClient(transport=transport) as http_client:
@@ -64,6 +85,37 @@ class KeitaroClientTests(unittest.IsolatedAsyncioTestCase):
 
             with self.assertRaisesRegex(KeitaroError, "данные для кампании"):
                 await client.list("campaigns")
+
+    async def test_campaign_streams_uses_campaign_scoped_endpoint(self):
+        requests: list[httpx.Request] = []
+
+        def capture_request(request: httpx.Request) -> httpx.Response:
+            requests.append(request)
+            return httpx.Response(
+                200,
+                json=[
+                    {
+                        "id": 100,
+                        "schema": "landings",
+                        "type": "default",
+                        "action_type": "http",
+                        "offers": [{"offer_id": 8, "share": 100, "state": "active"}],
+                    }
+                ],
+            )
+
+        transport = httpx.MockTransport(capture_request)
+        async with httpx.AsyncClient(transport=transport) as http_client:
+            client = KeitaroClient(
+                "https://tracker.test",
+                "secret-api-key",
+                http_client=http_client,
+            )
+
+            streams = await client.campaign_streams(41)
+
+        self.assertEqual(requests[0].url.path, "/admin_api/v1/campaigns/41/streams")
+        self.assertEqual(streams[0]["offers"][0]["offer_id"], 8)
 
     async def test_campaign_streams_reject_malformed_streams(self):
         transport = httpx.MockTransport(
