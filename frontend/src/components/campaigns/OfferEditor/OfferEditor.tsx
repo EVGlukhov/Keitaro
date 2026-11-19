@@ -1,15 +1,9 @@
-import clsx from "clsx";
-import { FormEvent, useState } from "react";
-import {
-  CircleHelp as CircleHelpIcon,
-  LoaderCircle as LoaderCircleIcon,
-  Plus as PlusIcon,
-  Route as RouteIcon,
-  Trash2 as Trash2Icon,
-} from "lucide-react";
+import { CircleHelp as CircleHelpIcon, Route as RouteIcon } from "lucide-react";
 import { Campaign, Metadata, Stream } from "@/api";
-import { offerId, optionLabel } from "@/utils/campaign";
-import { Button, Dialog, FormField, IconButton, SelectInput, Typography } from "@/components/ui";
+import { Button, Dialog, Typography } from "@/components/ui";
+import { OfferAddForm } from "@/components/campaigns/OfferEditor/OfferAddForm";
+import { OfferStreamRow } from "@/components/campaigns/OfferEditor/OfferStreamRow";
+import { useOfferRemoval } from "@/hooks/useOfferRemoval";
 
 type OfferEditorProps = {
   campaign: Campaign | null;
@@ -26,22 +20,13 @@ export function OfferEditor({
   onAddOffer,
   onRemoveOffer,
 }: OfferEditorProps) {
-  const [newOfferId, setNewOfferId] = useState("");
-  const [streamToRemove, setStreamToRemove] = useState<Stream | null>(null);
   const streams = campaign?.streams ?? [];
-  const selectedOffer = metadata?.offers.find((offer) => offer.id === Number(newOfferId));
-
-  async function handleAddOffer(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!newOfferId) return;
-    if (await onAddOffer(Number(newOfferId))) setNewOfferId("");
-  }
-
-  async function confirmRemoveOffer() {
-    if (streamToRemove && (await onRemoveOffer(streamToRemove))) {
-      setStreamToRemove(null);
-    }
-  }
+  const {
+    cancelRemoval,
+    confirmRemoval,
+    requestRemoval,
+    streamToRemove,
+  } = useOfferRemoval(onRemoveOffer);
 
   return (
     <>
@@ -76,39 +61,11 @@ export function OfferEditor({
           </div>
         ) : (
           <>
-            <form className="border-b border-slate-100 py-3" onSubmit={(event) => void handleAddOffer(event)}>
-              <FormField label="Добавить оффер" htmlFor="add-offer">
-                <div className="mt-2 flex gap-2">
-                  <SelectInput
-                    className="min-w-0"
-                    compact
-                    id="add-offer"
-                    value={newOfferId}
-                    onChange={(event) => setNewOfferId(event.target.value)}
-                    required
-                  >
-                    <Typography as="option" variant="inherit" value="">
-                      Выберите оффер
-                    </Typography>
-                    {(metadata?.offers ?? []).map((offer) => (
-                      <Typography as="option" variant="inherit" key={offer.id} value={offer.id}>
-                        {optionLabel(offer)} · #{offer.id}
-                      </Typography>
-                    ))}
-                  </SelectInput>
-                  <Button
-                    size="small"
-                    type="submit"
-                    disabled={!selectedOffer}
-                    loading={saving}
-                    className="shrink-0"
-                  >
-                    {!saving && <PlusIcon size={15} />}
-                    Добавить
-                  </Button>
-                </div>
-              </FormField>
-            </form>
+            <OfferAddForm
+              metadata={metadata}
+              saving={saving}
+              onAddOffer={onAddOffer}
+            />
 
             <div>
               <div className="grid grid-cols-stream gap-1.5 pb-2 pt-3">
@@ -121,12 +78,12 @@ export function OfferEditor({
                   У кампании нет потоков.
                 </Typography>
               ) : streams.map((stream) => (
-                <StreamRow
+                <OfferStreamRow
                   key={stream.id}
                   stream={stream}
                   metadata={metadata}
                   saving={saving}
-                  onRemove={() => setStreamToRemove(stream)}
+                  onRemove={() => requestRemoval(stream)}
                 />
               ))}
             </div>
@@ -142,7 +99,7 @@ export function OfferEditor({
       {streamToRemove && (
         <Dialog
           labelledBy="remove-offer-title"
-          onClose={() => setStreamToRemove(null)}
+          onClose={cancelRemoval}
         >
           <Typography
             as="h2"
@@ -159,7 +116,7 @@ export function OfferEditor({
             <Button
               type="button"
               variant="secondary"
-              onClick={() => setStreamToRemove(null)}
+              onClick={cancelRemoval}
             >
               Отмена
             </Button>
@@ -168,7 +125,7 @@ export function OfferEditor({
               loading={saving}
               disabled={saving}
               className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-200"
-              onClick={() => void confirmRemoveOffer()}
+              onClick={() => void confirmRemoval()}
             >
               Удалить
             </Button>
@@ -176,46 +133,5 @@ export function OfferEditor({
         </Dialog>
       )}
     </>
-  );
-}
-
-function StreamRow({
-  stream,
-  metadata,
-  saving,
-  onRemove,
-}: {
-  stream: Stream;
-  metadata: Metadata | null;
-  saving: boolean;
-  onRemove: () => void;
-}) {
-  const id = offerId(stream);
-  const offer = metadata?.offers.find((item) => item.id === id);
-  const isOffer = stream.action_type === "offer";
-
-  return (
-    <div className="grid min-h-10 grid-cols-stream items-center gap-1.5 border-b border-slate-100 last:border-0">
-      <Typography as="span" variant="caption" className="flex min-w-0 items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap text-slate-600">
-        <i className={clsx("size-1.5 shrink-0 rounded-full", isOffer ? "bg-emerald-500" : "bg-violet-500")} />
-        {stream.name ?? `Поток #${stream.id}`}
-      </Typography>
-      <Typography variant="caption" className="truncate text-slate-500">
-        {isOffer
-          ? offer ? optionLabel(offer) : `Оффер #${id ?? "—"}`
-          : <Typography variant="micro" className="rounded bg-violet-50 px-1.5 py-1 text-violet-600">Гео / редирект</Typography>}
-      </Typography>
-      {isOffer ? (
-        <IconButton
-          className="border-0 bg-transparent text-slate-400 hover:bg-rose-50 hover:text-rose-600"
-          size="small"
-          label="Удалить оффер"
-          disabled={saving}
-          onClick={onRemove}
-        >
-          {saving ? <LoaderCircleIcon className="animate-spin" size={15} /> : <Trash2Icon size={15} />}
-        </IconButton>
-      ) : <span />}
-    </div>
   );
 }
