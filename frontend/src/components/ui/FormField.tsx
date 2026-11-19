@@ -32,20 +32,39 @@ export function TextInput({ compact = false, className = "", ...props }: TextInp
 }
 
 type SelectInputProps = SelectHTMLAttributes<HTMLSelectElement> & {
+  options?: readonly SelectInputOption[];
   compact?: boolean;
-  children: ReactNode;
+};
+
+export type SelectInputOption = {
+  value: string | number;
+  label: ReactNode;
+  disabled?: boolean;
 };
 
 export function SelectInput({
   compact = false,
   className = "",
+  options,
   children,
   ...props
 }: SelectInputProps) {
   const spacingClass = compact ? "mt-0" : "mt-1.5";
   return (
     <select className={clsx(controlClass, spacingClass, className)} {...props}>
-      {children}
+      {options
+        ? options.map((option) => (
+            <Typography
+              as="option"
+              variant="inherit"
+              key={String(option.value)}
+              value={option.value}
+              disabled={option.disabled}
+            >
+              {option.label}
+            </Typography>
+          ))
+        : children}
     </select>
   );
 }
