@@ -31,8 +31,11 @@ export function TextInput({ compact = false, className = "", ...props }: TextInp
   return <input className={clsx(controlClass, spacingClass, className)} {...props} />;
 }
 
-type SelectInputProps = SelectHTMLAttributes<HTMLSelectElement> & {
-  options?: readonly SelectInputOption[];
+type SelectInputProps = Omit<
+  SelectHTMLAttributes<HTMLSelectElement>,
+  "children"
+> & {
+  options: readonly SelectInputOption[];
   compact?: boolean;
 };
 
@@ -46,25 +49,22 @@ export function SelectInput({
   compact = false,
   className = "",
   options,
-  children,
   ...props
 }: SelectInputProps) {
   const spacingClass = compact ? "mt-0" : "mt-1.5";
   return (
     <select className={clsx(controlClass, spacingClass, className)} {...props}>
-      {options
-        ? options.map((option) => (
-            <Typography
-              as="option"
-              variant="inherit"
-              key={String(option.value)}
-              value={option.value}
-              disabled={option.disabled}
-            >
-              {option.label}
-            </Typography>
-          ))
-        : children}
+      {options.map((option) => (
+        <Typography
+          as="option"
+          variant="inherit"
+          key={String(option.value)}
+          value={option.value}
+          disabled={option.disabled}
+        >
+          {option.label}
+        </Typography>
+      ))}
     </select>
   );
 }
