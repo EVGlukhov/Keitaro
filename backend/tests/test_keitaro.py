@@ -6,6 +6,51 @@ from app.keitaro import KeitaroClient, KeitaroError
 
 
 class KeitaroClientTests(unittest.IsolatedAsyncioTestCase):
+    async def test_list_unwraps_items_and_list_responses(self):
+        responses = {
+            "/admin_api/v1/offers": httpx.Response(
+                200, json={"items": [{"id": 8}]}
+            ),
+            "/admin_api/v1/domains": httpx.Response(200, json=[{"id": 2}]),
+        }
+        transport = httpx.MockTransport(
+            lambda request: responses[request.url.path]
+        )
+        async with httpx.AsyncClient(transport=transport) as http_client:
+            client = KeitaroClient(
+                "https://tracker.test",
+                "secret-api-key",
+                http_client=http_client,
+            )
+
+            self.assertEqual(await client.list("offers"), [{"id": 8}])
+            self.assertEqual(await client.list("domains"), [{"id": 2}])
+
+    async def test_empty_success_response_returns_none(self):
+        transport = httpx.MockTransport(lambda _: httpx.Response(204))
+        async with httpx.AsyncClient(transport=transport) as http_client:
+            client = KeitaroClient(
+                "https://tracker.test",
+                "secret-api-key",
+                http_client=http_client,
+            )
+
+            self.assertIsNone(await client.request("DELETE", "campaigns/41"))
+
+    async def test_list_rejects_unexpected_response_shape(self):
+        transport = httpx.MockTransport(
+            lambda _: httpx.Response(200, json={"unexpected": []})
+        )
+        async with httpx.AsyncClient(transport=transport) as http_client:
+            client = KeitaroClient(
+                "https://tracker.test",
+                "secret-api-key",
+                http_client=http_client,
+            )
+
+            with self.assertRaisesRegex(KeitaroError, "неожиданный список"):
+                await client.list("offers")
+
     async def test_upstream_http_failure_is_logged_and_response_body_is_hidden(self):
         response_body = "upstream internal error"
         transport = httpx.MockTransport(
