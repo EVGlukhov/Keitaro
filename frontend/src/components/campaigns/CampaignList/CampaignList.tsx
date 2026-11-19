@@ -1,6 +1,6 @@
-import { Campaign } from "@/api";
 import { Layers3 as Layers3Icon, LoaderCircle as LoaderCircleIcon } from "lucide-react";
-import { Typography } from "@/components/ui";
+import type { Campaign, CampaignListQuery } from "@/api";
+import { Button, Typography } from "@/components/ui";
 import { CampaignListFilters } from "@/components/campaigns/CampaignList/CampaignListFilters";
 import { CampaignRow } from "@/components/campaigns/CampaignList/CampaignRow";
 import { CampaignListState } from "@/components/campaigns/CampaignList/CampaignListState";
@@ -9,6 +9,9 @@ import { useCampaignList } from "@/hooks/useCampaignList";
 type CampaignListProps = {
   campaigns: Campaign[];
   loading: boolean;
+  campaignCount: number;
+  total: number;
+  onQueryChange: (query: CampaignListQuery) => void;
   selectedId: number | null;
   selectedStreamCount: number;
   onSelect: (id: number) => void;
@@ -17,6 +20,9 @@ type CampaignListProps = {
 export function CampaignList({
   campaigns,
   loading,
+  campaignCount,
+  total,
+  onQueryChange,
   selectedId,
   selectedStreamCount,
   onSelect,
@@ -25,13 +31,16 @@ export function CampaignList({
     handleSearchChange,
     handleSortChange,
     handleStatusFilterChange,
+    handlePageChange,
     search,
+    page,
+    pageCount,
+    pageSize,
     sort,
     sortOptions,
     statusFilter,
     statusFilterOptions,
-    visibleCampaigns,
-  } = useCampaignList(campaigns);
+  } = useCampaignList(onQueryChange, total);
 
   return (
     <div className="min-h-56 overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -56,14 +65,14 @@ export function CampaignList({
           icon={<LoaderCircleIcon className="animate-spin" size={22} />}
           message="Загружаем кампании…"
         />
-      ) : campaigns.length === 0 ? (
+      ) : campaigns.length === 0 && campaignCount === 0 && total === 0 ? (
         <CampaignListState
           icon={<Layers3Icon size={22} />}
           message="Кампаний пока нет. Создайте первую."
         />
-      ) : visibleCampaigns.length === 0 ? (
+      ) : campaigns.length === 0 ? (
         <CampaignListState message="Кампании не найдены." />
-      ) : visibleCampaigns.map((campaign) => (
+      ) : campaigns.map((campaign) => (
         <CampaignRow
           key={campaign.id}
           campaign={campaign}
@@ -72,6 +81,32 @@ export function CampaignList({
           onSelect={() => onSelect(campaign.id)}
         />
       ))}
+      {total > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-3 py-2.5">
+          <Typography variant="caption" className="text-slate-500">
+            {(page - 1) * pageSize + 1}–
+            {Math.min(page * pageSize, total)} из {total}
+          </Typography>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="small"
+              disabled={page <= 1}
+              onClick={() => handlePageChange(page - 1)}
+            >
+              Назад
+            </Button>
+            <Button
+              variant="secondary"
+              size="small"
+              disabled={page >= pageCount}
+              onClick={() => handlePageChange(page + 1)}
+            >
+              Далее
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

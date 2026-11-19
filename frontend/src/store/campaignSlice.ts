@@ -3,6 +3,10 @@ import {
   api,
   Campaign,
   CampaignCreateRequest,
+} from "@/api";
+import type {
+  CampaignListQuery,
+  CampaignListResponse,
   Metadata,
   Stream,
 } from "@/api";
@@ -14,6 +18,11 @@ type AsyncConfig = {
 
 type CampaignState = {
   campaigns: Campaign[];
+  campaignCount: number;
+  filteredCampaignCount: number;
+  listQuery: CampaignListQuery;
+  listLoading: boolean;
+  listRequestId: string | null;
   metadata: Metadata | null;
   selectedId: number | null;
   selectedCampaign: Campaign | null;
@@ -29,6 +38,17 @@ type CampaignState = {
 
 const initialState: CampaignState = {
   campaigns: [],
+  campaignCount: 0,
+  filteredCampaignCount: 0,
+  listQuery: {
+    q: "",
+    status: "all",
+    sort: "id-asc",
+    offset: 0,
+    limit: 25,
+  },
+  listLoading: true,
+  listRequestId: null,
   metadata: null,
   selectedId: null,
   selectedCampaign: null,
@@ -47,20 +67,31 @@ function errorMessage(reason: unknown, fallback: string) {
 }
 
 export const loadOverview = createAsyncThunk<
-  { metadata: Metadata; campaigns: Campaign[] },
+  Metadata,
   void,
   AsyncConfig
 >("campaigns/loadOverview", async (_, { rejectWithValue }) => {
   try {
-    const [metadata, campaigns] = await Promise.all([
-      api.metadata(),
-      api.campaigns(),
-    ]);
-    return { metadata, campaigns };
+    return await api.metadata();
   } catch (reason) {
     return rejectWithValue(errorMessage(reason, "Не удалось загрузить данные"));
   }
 });
+
+export const loadCampaigns = createAsyncThunk<
+  CampaignListResponse,
+  CampaignListQuery | undefined,
+  AsyncConfig
+>(
+  "campaigns/loadCampaigns",
+  async (query, { getState, rejectWithValue }) => {
+    try {
+      return await api.campaigns(query ?? getState().campaigns.listQuery);
+    } catch (reason) {
+      return rejectWithValue(errorMessage(reason, "Не удалось загрузить кампании"));
+    }
+  },
+);
 
 export const loadCampaign = createAsyncThunk<Campaign, number, AsyncConfig>(
   "campaigns/loadCampaign",
@@ -136,8 +167,7 @@ function saveCampaign(
     state.selectedCampaign = campaign;
   }
   const index = state.campaigns.findIndex((item) => item.id === campaign.id);
-  if (index === -1) state.campaigns.unshift(campaign);
-  else state.campaigns[index] = campaign;
+  if (index !== -1) state.campaigns[index] = campaign;
   state.notice = notice;
   state.error = "";
 }
@@ -165,8 +195,7 @@ const campaignSlice = createSlice({
         state.overviewRequestId = null;
         state.loading = false;
         state.connected = true;
-        state.metadata = action.payload.metadata;
-        state.campaigns = action.payload.campaigns;
+        state.metadata = action.payload;
       })
       .addCase(loadOverview.rejected, (state, action) => {
         if (action.meta.requestId !== state.overviewRequestId) return;
@@ -174,6 +203,26 @@ const campaignSlice = createSlice({
         state.loading = false;
         state.connected = false;
         state.error = action.payload ?? action.error.message ?? "Не удалось загрузить данные";
+      })
+      .addCase(loadCampaigns.pending, (state, action) => {
+        state.listRequestId = action.meta.requestId;
+        if (action.meta.arg) state.listQuery = action.meta.arg;
+        state.listLoading = true;
+        state.error = "";
+      })
+      .addCase(loadCampaigns.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.listRequestId) return;
+        state.listRequestId = null;
+        state.listLoading = false;
+        state.campaigns = action.payload.items;
+        state.filteredCampaignCount = action.payload.total;
+        state.campaignCount = action.payload.campaign_count;
+      })
+      .addCase(loadCampaigns.rejected, (state, action) => {
+        if (action.meta.requestId !== state.listRequestId) return;
+        state.listRequestId = null;
+        state.listLoading = false;
+        state.error = action.payload ?? action.error.message ?? "Не удалось загрузить кампании";
       })
       .addCase(loadCampaign.pending, (state, action) => {
         state.detailRequestId = action.meta.requestId;

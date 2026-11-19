@@ -18,9 +18,12 @@ export default function App() {
   const page = useCampaignPageController();
   const {
     campaigns,
+    campaignCount,
     connected,
     error,
     loading,
+    listLoading,
+    filteredCampaignCount,
     metadata,
     notice,
     saving,
@@ -33,11 +36,11 @@ export default function App() {
 
   return (
     <main className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
-      <Sidebar campaignCount={campaigns.length} connected={connected} />
+      <Sidebar campaignCount={campaignCount} connected={connected} />
       <section className="min-w-0 flex-1">
         <TopBar
           connected={connected}
-          loading={loading}
+          loading={loading || listLoading}
           onRefresh={page.refresh}
         />
 
@@ -55,17 +58,20 @@ export default function App() {
           />
 
           <CampaignSummary
-            campaignCount={campaigns.length}
+            campaignCount={campaignCount}
             selectedCampaign={selectedCampaign}
             offerCount={offerCount}
           />
 
-          <CampaignListHeading campaignCount={campaigns.length} />
+          <CampaignListHeading campaignCount={campaignCount} />
 
           <div className="grid items-start gap-4 xl:grid-cols-dashboard">
             <CampaignList
               campaigns={campaigns}
-              loading={loading}
+              loading={listLoading}
+              campaignCount={campaignCount}
+              total={filteredCampaignCount}
+              onQueryChange={page.queryCampaigns}
               selectedId={selectedId}
               selectedStreamCount={streams.length}
               onSelect={page.selectCampaign}

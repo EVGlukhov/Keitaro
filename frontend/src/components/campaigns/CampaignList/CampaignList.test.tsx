@@ -1,12 +1,43 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { CampaignListQuery } from "@/api";
 import { CampaignList } from "./CampaignList";
 import {
   CAMPAIGN_SORT,
   CAMPAIGN_STATE,
   CAMPAIGN_STATUS_FILTER,
 } from "@/constants/campaign";
+
+const campaigns = [
+  { id: 41, name: "Test campaign", state: CAMPAIGN_STATE.ACTIVE },
+];
+
+function renderList({
+  query = vi.fn(),
+  items = campaigns,
+  campaignCount = items.length,
+  total = items.length,
+}: {
+  query?: (query: CampaignListQuery) => void;
+  items?: typeof campaigns;
+  campaignCount?: number;
+  total?: number;
+} = {}) {
+  render(
+    <CampaignList
+      campaigns={items}
+      loading={false}
+      campaignCount={campaignCount}
+      total={total}
+      onQueryChange={query}
+      selectedId={null}
+      selectedStreamCount={0}
+      onSelect={vi.fn()}
+    />,
+  );
+  return query;
+}
 
 describe("CampaignList", () => {
   beforeEach(() => {
@@ -18,15 +49,11 @@ describe("CampaignList", () => {
     const onSelect = vi.fn();
     render(
       <CampaignList
-        campaigns={[
-          {
-            id: 41,
-            name: "Test campaign",
-            state: CAMPAIGN_STATE.ACTIVE,
-            streams: [{ id: 100 }],
-          },
-        ]}
+        campaigns={campaigns}
         loading={false}
+        campaignCount={1}
+        total={1}
+        onQueryChange={vi.fn()}
         selectedId={null}
         selectedStreamCount={0}
         onSelect={onSelect}
@@ -40,51 +67,18 @@ describe("CampaignList", () => {
   });
 
   it("shows the empty state when there are no campaigns", () => {
-    render(
-      <CampaignList
-        campaigns={[]}
-        loading={false}
-        selectedId={null}
-        selectedStreamCount={0}
-        onSelect={vi.fn()}
-      />,
-    );
+    renderList({ items: [], campaignCount: 0, total: 0 });
 
     expect(screen.getByText("Кампаний пока нет. Создайте первую.")).toBeInTheDocument();
   });
 
-  it("marks the selected campaign button", () => {
-    render(
-      <CampaignList
-        campaigns={[{ id: 41, name: "Test campaign", state: CAMPAIGN_STATE.ACTIVE }]}
-        loading={false}
-        selectedId={41}
-        selectedStreamCount={0}
-        onSelect={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByRole("button", { name: /Test campaign/ })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-  });
-
-  it("searches by name or ID and filters by campaign status", async () => {
+  it("sends search and status changes to the server", async () => {
     const user = userEvent.setup();
-    render(
-      <CampaignList
-        campaigns={[
-          { id: 41, name: "Spring active", state: CAMPAIGN_STATE.ACTIVE },
-          { id: 42, name: "Spring paused", state: "disabled" },
-          { id: 43, name: "Summer active", state: CAMPAIGN_STATE.ACTIVE },
-        ]}
-        loading={false}
-        selectedId={null}
-        selectedStreamCount={0}
-        onSelect={vi.fn()}
-      />,
-    );
+    const query = renderList({
+      items: [],
+      campaignCount: 12,
+      total: 3,
+    });
 
     await user.type(screen.getByRole("searchbox", { name: "Поиск кампаний" }), "spring");
     await user.selectOptions(
@@ -92,63 +86,54 @@ describe("CampaignList", () => {
       CAMPAIGN_STATUS_FILTER.ACTIVE,
     );
 
-    expect(screen.getByRole("button", { name: /Spring active/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Spring paused/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Summer active/ })).not.toBeInTheDocument();
-
-    await user.clear(screen.getByRole("searchbox", { name: "Поиск кампаний" }));
-    await user.type(screen.getByRole("searchbox", { name: "Поиск кампаний" }), "43");
-    expect(screen.getByRole("button", { name: /Summer active/ })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(query).toHaveBeenLastCalledWith({
+        q: "spring",
+        status: CAMPAIGN_STATUS_FILTER.ACTIVE,
+        sort: CAMPAIGN_SORT.ID_ASC,
+        offset: 0,
+        limit: 25,
+      });
+    });
   });
 
-  it("sorts campaigns by name or ID", async () => {
+  it("sends sort changes and paginates through server results", async () => {
     const user = userEvent.setup();
-    render(
-      <CampaignList
-        campaigns={[
-          { id: 9, name: "Zeta", state: CAMPAIGN_STATE.ACTIVE },
-          { id: 3, name: "Alpha", state: CAMPAIGN_STATE.ACTIVE },
-        ]}
-        loading={false}
-        selectedId={null}
-        selectedStreamCount={0}
-        onSelect={vi.fn()}
-      />,
+    const query = renderList({ total: 51 });
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Сортировка кампаний" }),
+      CAMPAIGN_SORT.NAME,
     );
+    await waitFor(() => {
+      expect(query).toHaveBeenLastCalledWith({
+        q: undefined,
+        status: CAMPAIGN_STATUS_FILTER.ALL,
+        sort: CAMPAIGN_SORT.NAME,
+        offset: 0,
+        limit: 25,
+      });
+    });
 
-    const sort = screen.getByRole("combobox", { name: "Сортировка кампаний" });
-    await user.selectOptions(sort, CAMPAIGN_SORT.NAME);
-    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
-      expect.stringContaining("Alpha"),
-      expect.stringContaining("Zeta"),
-    ]);
-
-    await user.selectOptions(sort, CAMPAIGN_SORT.ID_DESC);
-    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
-      expect.stringContaining("Zeta"),
-      expect.stringContaining("Alpha"),
-    ]);
+    await user.click(screen.getByRole("button", { name: "Далее" }));
+    await waitFor(() => {
+      expect(query).toHaveBeenLastCalledWith({
+        q: undefined,
+        status: CAMPAIGN_STATUS_FILTER.ALL,
+        sort: CAMPAIGN_SORT.NAME,
+        offset: 25,
+        limit: 25,
+      });
+    });
+    expect(screen.getByText("26–50 из 51")).toBeInTheDocument();
+    expect(new URLSearchParams(window.location.search).get("page")).toBe("2");
   });
 
-  it("initializes search, status, and sorting from URL parameters", () => {
-    window.history.replaceState(
-      null,
-      "",
-      "/?q=active&status=active&sort=name",
-    );
-    render(
-      <CampaignList
-        campaigns={[
-          { id: 9, name: "Zeta active", state: CAMPAIGN_STATE.ACTIVE },
-          { id: 3, name: "Alpha active", state: CAMPAIGN_STATE.ACTIVE },
-          { id: 2, name: "Beta paused", state: "disabled" },
-        ]}
-        loading={false}
-        selectedId={null}
-        selectedStreamCount={0}
-        onSelect={vi.fn()}
-      />,
-    );
+  it("initializes search, status, sorting, and page from URL parameters", async () => {
+    window.history.replaceState(null, "", "/?q=active&status=active&sort=name&page=2");
+    const query = renderList({
+      items: [{ id: 9, name: "Zeta active", state: CAMPAIGN_STATE.ACTIVE }],
+      total: 60,
+    });
 
     expect(screen.getByRole("searchbox", { name: "Поиск кампаний" })).toHaveValue("active");
     expect(screen.getByRole("combobox", { name: "Фильтр по статусу" })).toHaveValue(
@@ -157,24 +142,21 @@ describe("CampaignList", () => {
     expect(screen.getByRole("combobox", { name: "Сортировка кампаний" })).toHaveValue(
       CAMPAIGN_SORT.NAME,
     );
-    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
-      expect.stringContaining("Alpha active"),
-      expect.stringContaining("Zeta active"),
-    ]);
+    await waitFor(() => {
+      expect(query).toHaveBeenLastCalledWith({
+        q: "active",
+        status: CAMPAIGN_STATUS_FILTER.ACTIVE,
+        sort: CAMPAIGN_SORT.NAME,
+        offset: 25,
+        limit: 25,
+      });
+    });
   });
 
   it("updates URL parameters and responds to browser navigation", async () => {
     const user = userEvent.setup();
     window.history.replaceState(null, "", "/?utm_source=campaign-list");
-    render(
-      <CampaignList
-        campaigns={[]}
-        loading={false}
-        selectedId={null}
-        selectedStreamCount={0}
-        onSelect={vi.fn()}
-      />,
-    );
+    renderList({ items: [], campaignCount: 0, total: 0 });
 
     await user.type(screen.getByRole("searchbox", { name: "Поиск кампаний" }), "spring");
     await user.selectOptions(
@@ -195,7 +177,7 @@ describe("CampaignList", () => {
     window.history.pushState(
       null,
       "",
-      "/?q=summer&status=inactive&sort=id-desc&utm_source=campaign-list",
+      "/?q=summer&status=inactive&sort=id-desc&page=3&utm_source=campaign-list",
     );
     act(() => window.dispatchEvent(new PopStateEvent("popstate")));
 

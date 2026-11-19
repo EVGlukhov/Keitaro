@@ -1,12 +1,13 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { Campaign } from "@/api";
+import { ChangeEvent, useEffect, useState } from "react";
+import type { CampaignListQuery } from "@/api";
 import type { SelectInputOption } from "@/components/ui";
 import {
   CAMPAIGN_SORT,
   CAMPAIGN_STATUS_FILTER,
 } from "@/constants/campaign";
 import type { CampaignSort, CampaignStatusFilter } from "@/constants/campaign";
-import { isCampaignActive } from "@/utils/campaign";
+
+const PAGE_SIZE = 25;
 
 const statusFilterOptions: readonly SelectInputOption[] = [
   { value: CAMPAIGN_STATUS_FILTER.ALL, label: "Все" },
@@ -25,6 +26,7 @@ type CampaignListFilters = {
   search: string;
   statusFilter: CampaignStatusFilter;
   sort: CampaignSort;
+  page: number;
 };
 
 function readFiltersFromUrl(): CampaignListFilters {
@@ -35,11 +37,13 @@ function readFiltersFromUrl(): CampaignListFilters {
   const sort = Object.values(CAMPAIGN_SORT).find(
     (value) => value === params.get("sort"),
   );
+  const parsedPage = Number(params.get("page"));
 
   return {
     search: params.get("q") ?? "",
     statusFilter: statusFilter ?? CAMPAIGN_STATUS_FILTER.ALL,
     sort: sort ?? CAMPAIGN_SORT.ID_ASC,
+    page: Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1,
   };
 }
 
@@ -57,6 +61,8 @@ function writeFiltersToUrl(
   }
   if (filters.sort === CAMPAIGN_SORT.ID_ASC) params.delete("sort");
   else params.set("sort", filters.sort);
+  if (filters.page === 1) params.delete("page");
+  else params.set("page", String(filters.page));
 
   const query = params.toString();
   const url = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
@@ -64,9 +70,13 @@ function writeFiltersToUrl(
   else window.history.replaceState(null, "", url);
 }
 
-export function useCampaignList(campaigns: Campaign[]) {
+export function useCampaignList(
+  onQueryChange: (query: CampaignListQuery) => void,
+  total: number,
+) {
   const [filters, setFilters] = useState(readFiltersFromUrl);
-  const { search, statusFilter, sort } = filters;
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
+  const { search, statusFilter, sort, page } = filters;
 
   useEffect(() => {
     function handlePopState() {
@@ -77,8 +87,27 @@ export function useCampaignList(campaigns: Campaign[]) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(search), 250);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    onQueryChange({
+      q: debouncedSearch.trim() || undefined,
+      status: statusFilter,
+      sort,
+      offset: (page - 1) * PAGE_SIZE,
+      limit: PAGE_SIZE,
+    });
+  }, [debouncedSearch, onQueryChange, page, sort, statusFilter]);
+
   function handleSearchChange(event: ChangeEvent<HTMLInputElement>) {
-    const nextFilters = { ...filters, search: event.currentTarget.value };
+    const nextFilters = {
+      ...filters,
+      search: event.currentTarget.value,
+      page: 1,
+    };
     setFilters(nextFilters);
     writeFiltersToUrl(nextFilters, "replace");
   }
@@ -88,7 +117,7 @@ export function useCampaignList(campaigns: Campaign[]) {
       (filter) => filter === event.currentTarget.value,
     );
     if (value && value !== statusFilter) {
-      const nextFilters = { ...filters, statusFilter: value };
+      const nextFilters = { ...filters, statusFilter: value, page: 1 };
       setFilters(nextFilters);
       writeFiltersToUrl(nextFilters, "push");
     }
@@ -99,50 +128,32 @@ export function useCampaignList(campaigns: Campaign[]) {
       (sortOption) => sortOption === event.currentTarget.value,
     );
     if (value && value !== sort) {
-      const nextFilters = { ...filters, sort: value };
+      const nextFilters = { ...filters, sort: value, page: 1 };
       setFilters(nextFilters);
       writeFiltersToUrl(nextFilters, "push");
     }
   }
 
-  const visibleCampaigns = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase();
-    return campaigns
-      .filter((campaign) => {
-        const matchesSearch =
-          !query ||
-          campaign.name.toLocaleLowerCase().includes(query) ||
-          String(campaign.id).includes(query);
-        const matchesStatus =
-          statusFilter === CAMPAIGN_STATUS_FILTER.ALL ||
-          (statusFilter === CAMPAIGN_STATUS_FILTER.ACTIVE &&
-            isCampaignActive(campaign)) ||
-          (statusFilter === CAMPAIGN_STATUS_FILTER.INACTIVE &&
-            Boolean(campaign.state) &&
-            !isCampaignActive(campaign)) ||
-          (statusFilter === CAMPAIGN_STATUS_FILTER.UNKNOWN && !campaign.state);
-
-        return matchesSearch && matchesStatus;
-      })
-      .sort((left, right) => {
-        if (sort === CAMPAIGN_SORT.NAME) {
-          return left.name.localeCompare(right.name);
-        }
-        return sort === CAMPAIGN_SORT.ID_ASC
-          ? left.id - right.id
-          : right.id - left.id;
-      });
-  }, [campaigns, search, sort, statusFilter]);
+  function handlePageChange(nextPage: number) {
+    const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    if (!Number.isInteger(nextPage) || nextPage < 1 || nextPage > pageCount) return;
+    const nextFilters = { ...filters, page: nextPage };
+    setFilters(nextFilters);
+    writeFiltersToUrl(nextFilters, "push");
+  }
 
   return {
     handleSearchChange,
     handleSortChange,
     handleStatusFilterChange,
+    handlePageChange,
     search,
     sort,
     sortOptions,
     statusFilter,
     statusFilterOptions,
-    visibleCampaigns,
+    page,
+    pageCount: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+    pageSize: PAGE_SIZE,
   };
 }

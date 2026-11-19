@@ -126,6 +126,19 @@ export interface components {
             /** Traffic Source Id */
             traffic_source_id: number;
         };
+        /** CampaignListResponse */
+        CampaignListResponse: {
+            /** Items */
+            items: components["schemas"]["CampaignResponse"][];
+            /** Total */
+            total: number;
+            /** Campaign Count */
+            campaign_count: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+        };
         /** CampaignResponse */
         CampaignResponse: {
             /** Id */
@@ -257,7 +270,13 @@ export interface operations {
     };
     list_campaigns_api_campaigns_get: {
         parameters: {
-            query?: never;
+            query?: {
+                q?: string | null;
+                status?: "all" | "active" | "inactive" | "unknown";
+                sort?: "id-asc" | "id-desc" | "name";
+                offset?: number;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -270,7 +289,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CampaignResponse"][];
+                    "application/json": components["schemas"]["CampaignListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

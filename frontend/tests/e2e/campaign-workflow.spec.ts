@@ -29,7 +29,15 @@ test("creates a campaign, adds an offer, and removes only the offer stream", asy
       return;
     }
     if (request.method() === "GET" && pathname === "/api/campaigns") {
-      await route.fulfill({ json: campaigns });
+      await route.fulfill({
+        json: {
+          items: campaigns,
+          total: campaigns.length,
+          campaign_count: campaigns.length,
+          limit: 25,
+          offset: 0,
+        },
+      });
       return;
     }
     if (request.method() === "POST" && pathname === "/api/campaigns") {
