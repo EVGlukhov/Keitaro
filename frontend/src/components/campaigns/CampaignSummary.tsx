@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Globe2, Layers3, Route } from "lucide-react";
 import { ReactNode } from "react";
 import { Campaign } from "@/api";
+import { Typography } from "@/components/ui";
 
 type CampaignSummaryProps = {
   campaignCount: number;
@@ -29,16 +30,20 @@ function SummaryCard({
       <span className={clsx("absolute right-4 top-4 grid size-8 place-items-center rounded-lg", iconClass)}>
         {icon}
       </span>
-      <span className="text-ui text-slate-500">{label}</span>
-      <strong
+      <Typography variant="ui" className="text-slate-500">{label}</Typography>
+      <Typography
+        as="strong"
+        variant={largeValue ? "display" : "small"}
         className={clsx(
           "max-w-summary truncate font-bold",
-          largeValue ? "mt-3 text-2xl" : "mt-4 text-sm",
+          largeValue ? "mt-3" : "mt-4",
         )}
       >
         {value}
-      </strong>
-      <small className="mt-1 text-caption text-slate-400">{detail}</small>
+      </Typography>
+      <Typography as="small" variant="caption" className="mt-1 text-slate-400">
+        {detail}
+      </Typography>
     </div>
   );
 }

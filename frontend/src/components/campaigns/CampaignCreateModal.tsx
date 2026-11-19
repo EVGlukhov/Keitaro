@@ -2,7 +2,7 @@ import { FormEvent } from "react";
 import { Plus, X } from "lucide-react";
 import { CampaignCreateRequest, Metadata } from "@/api";
 import { optionLabel } from "@/utils/campaign";
-import { Button, FormField, IconButton, SelectInput, TextInput } from "@/components/ui";
+import { Button, FormField, IconButton, SelectInput, TextInput, Typography } from "@/components/ui";
 
 type CampaignCreateModalProps = {
   metadata: Metadata;
@@ -47,21 +47,22 @@ export function CampaignCreateModal({
       >
         <div className="flex items-start justify-between">
           <div>
-            <span className="flex items-center gap-2 text-caption font-bold tracking-label text-slate-500">
-              <i className="h-0.5 w-3.5 rounded bg-violet-500" /> НОВАЯ КАМПАНИЯ
-            </span>
-            <h2 id="modal-title" className="mt-2 text-xl font-bold tracking-tight text-slate-900">
+            <Typography as="span" variant="caption" className="flex items-center gap-2 font-bold tracking-label text-slate-500">
+              <i className="h-0.5 w-3.5 rounded bg-violet-500" />
+              НОВАЯ КАМПАНИЯ
+            </Typography>
+            <Typography as="h2" variant="title" id="modal-title" className="mt-2 font-bold tracking-tight text-slate-900">
               Настроить кампанию
-            </h2>
+            </Typography>
           </div>
           <IconButton label="Закрыть" onClick={onClose}>
             <X size={18} />
           </IconButton>
         </div>
 
-        <p className="mb-5 mt-2 text-ui-sm leading-relaxed text-slate-500">
+        <Typography as="p" variant="uiSmall" className="mb-5 mt-2 leading-relaxed text-slate-500">
           Будут созданы два потока: гео-фильтр на Google и поток выбранного оффера.
-        </p>
+        </Typography>
         <form onSubmit={(event) => void handleSubmit(event)}>
           <FormField label="Название кампании">
             <TextInput name="name" placeholder="Например, US — весенняя акция" required maxLength={255} />
@@ -80,35 +81,49 @@ export function CampaignCreateModal({
             </FormField>
             <FormField label="Оффер">
               <SelectInput name="offer_id" required defaultValue="">
-                <option value="" disabled>Выберите оффер</option>
+                <Typography as="option" variant="inherit" value="" disabled>
+                  Выберите оффер
+                </Typography>
                 {metadata.offers.map((option) => (
-                  <option key={option.id} value={option.id}>
+                  <Typography as="option" variant="inherit" key={option.id} value={option.id}>
                     {optionLabel(option)} · #{option.id}
-                  </option>
+                  </Typography>
                 ))}
               </SelectInput>
             </FormField>
             <FormField label="Домен">
               <SelectInput name="domain_id" required defaultValue="">
-                <option value="" disabled>Выберите домен</option>
+                <Typography as="option" variant="inherit" value="" disabled>
+                  Выберите домен
+                </Typography>
                 {metadata.domains.map((option) => (
-                  <option key={option.id} value={option.id}>{optionLabel(option)}</option>
+                  <Typography as="option" variant="inherit" key={option.id} value={option.id}>
+                    {optionLabel(option)}
+                  </Typography>
                 ))}
               </SelectInput>
             </FormField>
             <FormField label="Группа">
               <SelectInput name="group_id" required defaultValue="">
-                <option value="" disabled>Выберите группу</option>
+                <Typography as="option" variant="inherit" value="" disabled>
+                  Выберите группу
+                </Typography>
                 {metadata.groups.map((option) => (
-                  <option key={option.id} value={option.id}>{optionLabel(option)}</option>
+                  <Typography as="option" variant="inherit" key={option.id} value={option.id}>
+                    {optionLabel(option)}
+                  </Typography>
                 ))}
               </SelectInput>
             </FormField>
             <FormField label="Источник трафика" className="sm:col-span-2">
               <SelectInput name="traffic_source_id" required defaultValue="">
-                <option value="" disabled>Выберите источник</option>
+                <Typography as="option" variant="inherit" value="" disabled>
+                  Выберите источник
+                </Typography>
                 {metadata.traffic_sources.map((option) => (
-                  <option key={option.id} value={option.id}>{optionLabel(option)}</option>
+                  <Typography as="option" variant="inherit" key={option.id} value={option.id}>
+                    {optionLabel(option)}
+                  </Typography>
                 ))}
               </SelectInput>
             </FormField>

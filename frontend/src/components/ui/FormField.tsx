@@ -1,6 +1,8 @@
+import clsx from "clsx";
 import { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import { Typography } from "./Typography";
 
-const labelClass = "block text-ui-sm font-semibold text-slate-600";
+const labelClass = "block";
 const controlClass =
   "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:ring-4 focus:ring-violet-100";
 
@@ -13,8 +15,8 @@ type FormFieldProps = {
 
 export function FormField({ label, htmlFor, className = "", children }: FormFieldProps) {
   return (
-    <label className={`${labelClass} ${className}`} htmlFor={htmlFor}>
-      {label}
+    <label className={clsx(labelClass, className)} htmlFor={htmlFor}>
+      <Typography variant="label">{label}</Typography>
       {children}
     </label>
   );
@@ -26,7 +28,7 @@ type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
 
 export function TextInput({ compact = false, className = "", ...props }: TextInputProps) {
   const spacingClass = compact ? "mt-0" : "mt-1.5";
-  return <input className={`${controlClass} ${spacingClass} ${className}`} {...props} />;
+  return <input className={clsx(controlClass, spacingClass, className)} {...props} />;
 }
 
 type SelectInputProps = SelectHTMLAttributes<HTMLSelectElement> & {
@@ -42,7 +44,7 @@ export function SelectInput({
 }: SelectInputProps) {
   const spacingClass = compact ? "mt-0" : "mt-1.5";
   return (
-    <select className={`${controlClass} ${spacingClass} ${className}`} {...props}>
+    <select className={clsx(controlClass, spacingClass, className)} {...props}>
       {children}
     </select>
   );

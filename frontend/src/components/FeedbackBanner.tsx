@@ -1,5 +1,6 @@
+import clsx from "clsx";
 import { X } from "lucide-react";
-import { IconButton } from "@/components/ui";
+import { IconButton, Typography } from "@/components/ui";
 
 type FeedbackBannerProps = {
   error: string;
@@ -13,13 +14,14 @@ export function FeedbackBanner({ error, notice, onDismiss }: FeedbackBannerProps
 
   return (
     <div
-      className={`mb-5 flex items-center justify-between rounded-lg border px-3 py-2.5 text-xs ${
+      className={clsx(
+        "mb-5 flex items-center justify-between rounded-lg border px-3 py-2.5 text-xs",
         error
           ? "border-rose-200 bg-rose-50 text-rose-800"
-          : "border-emerald-200 bg-emerald-50 text-emerald-800"
-      }`}
+          : "border-emerald-200 bg-emerald-50 text-emerald-800",
+      )}
     >
-      <span>{message}</span>
+      <Typography variant="body">{message}</Typography>
       <IconButton
         size="small"
         className="ml-3 border-0 bg-transparent text-current hover:bg-black/5"
