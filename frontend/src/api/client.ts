@@ -1,4 +1,4 @@
-import type { components } from "./api.generated";
+import type { components } from "./schema.generated";
 
 export type Option = components["schemas"]["KeitaroOption"];
 export type Stream = components["schemas"]["StreamResponse"];

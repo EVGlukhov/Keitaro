@@ -19,6 +19,10 @@ test("creates a campaign, adds an offer, and removes only the offer stream", asy
   await page.route("**/api/**", async (route) => {
     const request = route.request();
     const { pathname } = new URL(request.url());
+    if (!pathname.startsWith("/api/")) {
+      await route.continue();
+      return;
+    }
 
     if (request.method() === "GET" && pathname === "/api/metadata") {
       await route.fulfill({ json: metadata });
