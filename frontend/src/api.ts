@@ -36,23 +36,62 @@ export type CampaignCreateRequest = {
   traffic_source_id: number;
 };
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number | null,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+function getErrorMessage(detail: unknown, fallback: string): string {
+  if (typeof detail === "string" && detail.trim()) return detail;
+  if (!Array.isArray(detail)) return fallback;
+
+  const messages = detail.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const error = item as { loc?: unknown; msg?: unknown };
+    if (typeof error.msg !== "string") return [];
+
+    const location = Array.isArray(error.loc)
+      ? error.loc.filter((part) => part !== "body").join(".")
+      : "";
+    return [location ? `${location}: ${error.msg}` : error.msg];
   });
+
+  return messages.length > 0 ? messages.join("; ") : fallback;
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...init?.headers,
+      },
+    });
+  } catch (reason) {
+    if (reason instanceof Error && reason.name === "AbortError") throw reason;
+    throw new ApiError(
+      "Не удалось связаться с сервером. Проверьте подключение и повторите попытку.",
+      null,
+    );
+  }
+
   if (!response.ok) {
-    let message = `Ошибка запроса (${response.status})`;
+    const fallback = `Не удалось выполнить запрос (HTTP ${response.status}).`;
+    let detail: unknown;
     try {
       const body = await response.json();
-      if (typeof body.detail === "string") message = body.detail;
+      detail = body && typeof body === "object" ? body.detail : undefined;
     } catch {
-      // Keep the HTTP status message when the response is not JSON.
+      detail = undefined;
     }
-    throw new Error(message);
+    throw new ApiError(getErrorMessage(detail, fallback), response.status);
   }
   return response.json() as Promise<T>;
 }

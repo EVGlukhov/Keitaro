@@ -51,6 +51,7 @@ export default function App() {
             error={error}
             notice={notice}
             onDismiss={page.dismissFeedback}
+            onRetry={connected === false ? page.refresh : undefined}
           />
 
           <CampaignSummary
