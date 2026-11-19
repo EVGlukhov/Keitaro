@@ -3,6 +3,7 @@ import { Campaign, Metadata } from "@/api";
 import campaignReducer, {
   addOffer,
   loadCampaign,
+  loadCampaigns,
   loadOverview,
 } from "@/store/campaignSlice";
 
@@ -22,23 +23,60 @@ describe("campaign request ordering", () => {
     state = campaignReducer(state, loadOverview.pending("second", undefined));
     state = campaignReducer(
       state,
-      loadOverview.fulfilled(
-        { metadata, campaigns: [secondCampaign] },
+      loadOverview.fulfilled(metadata, "second", undefined),
+    );
+    state = campaignReducer(
+      state,
+      loadOverview.fulfilled(metadata, "first", undefined),
+    );
+
+    expect(state.metadata).toEqual(metadata);
+    expect(state.loading).toBe(false);
+  });
+
+  it("ignores stale campaign list responses", () => {
+    const firstQuery = {
+      q: "first",
+      status: "all" as const,
+      sort: "id-asc" as const,
+      offset: 0,
+      limit: 25,
+    };
+    const secondQuery = { ...firstQuery, q: "second" };
+    let state = campaignReducer(undefined, loadCampaigns.pending("first", firstQuery));
+    state = campaignReducer(state, loadCampaigns.pending("second", secondQuery));
+    state = campaignReducer(
+      state,
+      loadCampaigns.fulfilled(
+        {
+          items: [secondCampaign],
+          total: 1,
+          campaign_count: 2,
+          limit: 25,
+          offset: 0,
+        },
         "second",
-        undefined,
+        secondQuery,
       ),
     );
     state = campaignReducer(
       state,
-      loadOverview.fulfilled(
-        { metadata, campaigns: [firstCampaign] },
+      loadCampaigns.fulfilled(
+        {
+          items: [firstCampaign],
+          total: 1,
+          campaign_count: 2,
+          limit: 25,
+          offset: 0,
+        },
         "first",
-        undefined,
+        firstQuery,
       ),
     );
 
     expect(state.campaigns).toEqual([secondCampaign]);
-    expect(state.loading).toBe(false);
+    expect(state.listQuery).toEqual(secondQuery);
+    expect(state.listLoading).toBe(false);
   });
 
   it("ignores stale campaign details after a newer selection", () => {
@@ -83,6 +121,6 @@ describe("campaign request ordering", () => {
 
     expect(state.selectedId).toBe(2);
     expect(state.selectedCampaign).toBeNull();
-    expect(state.campaigns).toEqual([updatedFirstCampaign]);
+    expect(state.campaigns).toEqual([]);
   });
 });

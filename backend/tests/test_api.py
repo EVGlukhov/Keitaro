@@ -17,6 +17,7 @@ class FakeKeitaro:
     def __init__(self) -> None:
         self.campaigns: dict[int, dict] = {}
         self.streams: dict[int, list[dict]] = {}
+        self.campaign_list: list[dict] = []
         self.next_campaign_id = 41
         self.next_stream_id = 100
         self.fail_campaign_list = False
@@ -24,6 +25,8 @@ class FakeKeitaro:
     async def list(self, path: str):
         if path == "campaigns" and self.fail_campaign_list:
             raise KeitaroError("Keitaro is unavailable")
+        if path == "campaigns":
+            return self.campaign_list
         return []
 
     async def create_campaign(self, payload):
@@ -142,8 +145,8 @@ class CampaignApiTests(unittest.TestCase):
         self.assertEqual(
             paths["/api/campaigns"]["get"]["responses"]["200"]["content"][
                 "application/json"
-            ]["schema"]["items"]["$ref"],
-            "#/components/schemas/CampaignResponse",
+            ]["schema"]["$ref"],
+            "#/components/schemas/CampaignListResponse",
         )
         self.assertEqual(
             paths["/api/campaigns/{campaign_id}/offers"]["post"]["responses"][
@@ -151,6 +154,68 @@ class CampaignApiTests(unittest.TestCase):
             ]["content"]["application/json"]["schema"]["$ref"],
             "#/components/schemas/StreamResponse",
         )
+
+    def test_campaign_list_search_sort_and_pagination(self):
+        self.keitaro.campaign_list = [
+            {"id": 5, "name": "Alpha Zeta", "state": "active"},
+            {"id": 2, "name": "Alpha Alpha", "state": "ACTIVE"},
+            {"id": 3, "name": "Beta", "state": "active"},
+            {"id": 4, "name": "Alpha paused", "state": "disabled"},
+            {"id": 6, "name": "No state"},
+        ]
+
+        first_page = self.client.get(
+            "/api/campaigns",
+            params={
+                "q": " alpha ",
+                "status": "active",
+                "sort": "name",
+                "limit": 1,
+                "offset": 0,
+            },
+        )
+        second_page = self.client.get(
+            "/api/campaigns",
+            params={
+                "q": "alpha",
+                "status": "active",
+                "sort": "name",
+                "limit": 1,
+                "offset": 1,
+            },
+        )
+        inactive = self.client.get(
+            "/api/campaigns",
+            params={"q": "alpha", "status": "inactive"},
+        )
+        unknown = self.client.get(
+            "/api/campaigns",
+            params={"status": "unknown", "sort": "id-desc"},
+        )
+        by_id = self.client.get("/api/campaigns", params={"q": "4"})
+
+        self.assertEqual(first_page.status_code, 200)
+        self.assertEqual(
+            first_page.json(),
+            {
+                "items": [
+                    {
+                        "id": 2,
+                        "name": "Alpha Alpha",
+                        "state": "ACTIVE",
+                        "streams": [],
+                    }
+                ],
+                "total": 2,
+                "campaign_count": 5,
+                "limit": 1,
+                "offset": 0,
+            },
+        )
+        self.assertEqual(second_page.json()["items"][0]["id"], 5)
+        self.assertEqual([item["id"] for item in inactive.json()["items"]], [4])
+        self.assertEqual([item["id"] for item in unknown.json()["items"]], [6])
+        self.assertEqual([item["id"] for item in by_id.json()["items"]], [4])
 
     def test_geo_stream_cannot_be_deleted(self):
         campaign = self.client.post(

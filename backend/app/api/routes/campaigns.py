@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from ..dependencies import get_keitaro_client
@@ -6,7 +6,10 @@ from ...database import get_db
 from ...keitaro import KeitaroClient
 from ...schemas import (
     CampaignCreate,
+    CampaignListResponse,
     CampaignResponse,
+    CampaignSortOrder,
+    CampaignStatusFilter,
     DeleteOfferResponse,
     OfferCreate,
     StreamResponse,
@@ -16,9 +19,22 @@ from ...services.campaign_service import CampaignService
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
 
 
-@router.get("", response_model=list[CampaignResponse])
-async def list_campaigns(client: KeitaroClient = Depends(get_keitaro_client)):
-    return await CampaignService(client).list_campaigns()
+@router.get("", response_model=CampaignListResponse)
+async def list_campaigns(
+    q: str | None = Query(default=None, max_length=255),
+    status_filter: CampaignStatusFilter = Query(default="all", alias="status"),
+    sort: CampaignSortOrder = Query(default="id-asc"),
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=25, ge=1, le=100),
+    client: KeitaroClient = Depends(get_keitaro_client),
+):
+    return await CampaignService(client).list_campaigns(
+        query=q,
+        status_filter=status_filter,
+        sort=sort,
+        offset=offset,
+        limit=limit,
+    )
 
 
 @router.post("", response_model=CampaignResponse, status_code=status.HTTP_201_CREATED)

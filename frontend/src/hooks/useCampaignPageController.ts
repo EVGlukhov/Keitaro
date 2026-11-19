@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef } from "react";
 import { CampaignCreateRequest, Stream } from "@/api";
+import type { CampaignListQuery } from "@/api";
 import {
   addOffer,
   clearError,
   clearNotice,
   createCampaign,
   loadCampaign,
+  loadCampaigns,
   loadOverview,
   removeOffer,
 } from "@/store/campaignSlice";
@@ -32,17 +34,28 @@ export function useCampaignPageController() {
   }, [selectedId]);
 
   const refresh = useCallback(async () => {
-    const result = await dispatch(loadOverview());
+    const [result] = await Promise.all([
+      dispatch(loadOverview()),
+      dispatch(loadCampaigns()),
+    ]);
     const currentSelectedId = selectedIdRef.current;
     if (loadOverview.fulfilled.match(result) && currentSelectedId !== null) {
       await dispatch(loadCampaign(currentSelectedId));
     }
   }, [dispatch]);
 
+  const queryCampaigns = useCallback(
+    (query: CampaignListQuery) => {
+      void dispatch(loadCampaigns(query));
+    },
+    [dispatch],
+  );
+
   const create = useCallback(async (input: CampaignCreateRequest) => {
     const result = await dispatch(createCampaign(input));
     if (!createCampaign.fulfilled.match(result)) return false;
     selectedIdRef.current = result.payload.id;
+    void dispatch(loadCampaigns());
     return true;
   }, [dispatch]);
 
@@ -72,6 +85,7 @@ export function useCampaignPageController() {
     addOffer: add,
     createCampaign: create,
     dismissFeedback,
+    queryCampaigns,
     refresh,
     removeOffer: remove,
     selectCampaign: select,

@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -59,6 +59,14 @@ class CampaignResponse(BaseModel):
     streams: list[StreamResponse] = Field(default_factory=list)
 
 
+class CampaignListResponse(BaseModel):
+    items: list[CampaignResponse]
+    total: int = Field(ge=0)
+    campaign_count: int = Field(ge=0)
+    limit: int = Field(ge=1)
+    offset: int = Field(ge=0)
+
+
 class MetadataResponse(BaseModel):
     domains: list[KeitaroOption]
     groups: list[KeitaroOption]
@@ -68,3 +76,7 @@ class MetadataResponse(BaseModel):
 
 class DeleteOfferResponse(BaseModel):
     deleted: int
+
+
+CampaignStatusFilter = Literal["all", "active", "inactive", "unknown"]
+CampaignSortOrder = Literal["id-asc", "id-desc", "name"]

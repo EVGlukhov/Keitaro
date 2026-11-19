@@ -6,7 +6,12 @@ from sqlalchemy.orm import Session
 from ..errors import CampaignNotFoundError, InvalidCampaignOperationError
 from ..keitaro import KeitaroClient, KeitaroError
 from ..models import CampaignRecord
-from ..schemas import CampaignCreate, OfferCreate
+from ..schemas import (
+    CampaignCreate,
+    CampaignSortOrder,
+    CampaignStatusFilter,
+    OfferCreate,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +20,69 @@ class CampaignService:
     def __init__(self, client: KeitaroClient) -> None:
         self.client = client
 
-    async def list_campaigns(self) -> list[dict[str, Any]]:
-        return await self.client.list("campaigns")
+    async def list_campaigns(
+        self,
+        query: str | None,
+        status_filter: CampaignStatusFilter,
+        sort: CampaignSortOrder,
+        offset: int,
+        limit: int,
+    ) -> dict[str, Any]:
+        campaigns = await self.client.list("campaigns")
+        filtered = [
+            campaign
+            for campaign in campaigns
+            if self._matches_query(campaign, query)
+            and self._matches_status(campaign, status_filter)
+        ]
+        if sort == "name":
+            filtered.sort(
+                key=lambda campaign: (
+                    str(campaign.get("name", "")).casefold(),
+                    self._campaign_sort_id(campaign),
+                )
+            )
+        else:
+            filtered.sort(key=self._campaign_sort_id)
+            if sort == "id-desc":
+                filtered.reverse()
+
+        return {
+            "items": filtered[offset : offset + limit],
+            "total": len(filtered),
+            "campaign_count": len(campaigns),
+            "limit": limit,
+            "offset": offset,
+        }
+
+    @staticmethod
+    def _matches_query(campaign: dict[str, Any], query: str | None) -> bool:
+        normalized_query = (query or "").strip().casefold()
+        if not normalized_query:
+            return True
+        return (
+            normalized_query in str(campaign.get("name", "")).casefold()
+            or normalized_query in str(campaign.get("id", ""))
+        )
+
+    @staticmethod
+    def _matches_status(
+        campaign: dict[str, Any], status_filter: CampaignStatusFilter
+    ) -> bool:
+        state = campaign.get("state")
+        active = isinstance(state, str) and state.casefold() == "active"
+        if status_filter == "all":
+            return True
+        if status_filter == "active":
+            return active
+        if status_filter == "inactive":
+            return bool(state) and not active
+        return not state
+
+    @staticmethod
+    def _campaign_sort_id(campaign: dict[str, Any]) -> int:
+        value = campaign.get("id")
+        return value if isinstance(value, int) else 0
 
     async def create_campaign(
         self, data: CampaignCreate, db: Session

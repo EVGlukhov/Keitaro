@@ -1,8 +1,12 @@
-import type { components } from "./schema.generated";
+import type { components, operations } from "./schema.generated";
 
 export type Option = components["schemas"]["KeitaroOption"];
 export type Stream = components["schemas"]["StreamResponse"];
 export type Campaign = components["schemas"]["CampaignResponse"];
+export type CampaignListResponse = components["schemas"]["CampaignListResponse"];
+export type CampaignListQuery = NonNullable<
+  operations["list_campaigns_api_campaigns_get"]["parameters"]["query"]
+>;
 export type Metadata = components["schemas"]["MetadataResponse"];
 export type CampaignCreateRequest = components["schemas"]["CampaignCreate"];
 export type DeleteOfferResponse = components["schemas"]["DeleteOfferResponse"];
@@ -69,7 +73,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   metadata: () => request<Metadata>("/api/metadata"),
-  campaigns: () => request<Campaign[]>("/api/campaigns"),
+  campaigns: (query: CampaignListQuery) => {
+    const params = new URLSearchParams();
+    Object.entries(query).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) params.set(key, String(value));
+    });
+    return request<CampaignListResponse>(`/api/campaigns?${params.toString()}`);
+  },
   campaign: (id: number) => request<Campaign>(`/api/campaigns/${id}`),
   createCampaign: (data: CampaignCreateRequest) =>
     request<Campaign>("/api/campaigns", {
