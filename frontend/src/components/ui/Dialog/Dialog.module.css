@@ -1,0 +1,11 @@
+@reference "../../../styles.css";
+
+@layer components {
+  .backdrop {
+    @apply fixed inset-0 z-20 grid place-items-center overflow-y-auto bg-slate-950/45 p-4 backdrop-blur-sm;
+  }
+
+  .dialog {
+    @apply my-auto w-full max-w-dialog rounded-2xl bg-white p-5 shadow-2xl sm:p-7;
+  }
+}
