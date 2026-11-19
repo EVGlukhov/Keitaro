@@ -13,7 +13,12 @@ class KeitaroError(Exception):
 
 
 class KeitaroClient:
-    def __init__(self, base_url: str, api_key: str) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        api_key: str,
+        http_client: httpx.AsyncClient | None = None,
+    ) -> None:
         base_url = base_url.strip().rstrip("/")
         if not base_url:
             raise KeitaroError("Не задан KEITARO_URL")
@@ -22,6 +27,7 @@ class KeitaroClient:
         else:
             self.api_url = base_url + "/admin_api/v1/"
         self.api_key = api_key.strip()
+        self.http_client = http_client
         if not self.api_key:
             raise KeitaroError("Не задан KEITARO_API_KEY")
 
@@ -31,20 +37,24 @@ class KeitaroClient:
         url = urljoin(self.api_url, path.lstrip("/"))
         headers = {"Api-Key": self.api_key, **kwargs.pop("headers", {})}
         try:
-            async with httpx.AsyncClient(timeout=20) as client:
-                response = await client.request(method, url, headers=headers, **kwargs)
-                response.raise_for_status()
+            if self.http_client is None:
+                async with httpx.AsyncClient(timeout=20) as client:
+                    response = await client.request(
+                        method, url, headers=headers, **kwargs
+                    )
+            else:
+                response = await self.http_client.request(
+                    method, url, headers=headers, **kwargs
+                )
+            response.raise_for_status()
         except httpx.HTTPStatusError as exc:
-            detail = exc.response.text[:1000]
             logger.warning(
                 "Keitaro request %s %s failed with HTTP %s",
                 method,
                 path,
                 exc.response.status_code,
             )
-            raise KeitaroError(
-                f"Keitaro ответил HTTP {exc.response.status_code}: {detail}"
-            ) from exc
+            raise KeitaroError(f"Keitaro ответил HTTP {exc.response.status_code}") from exc
         except httpx.RequestError as exc:
             logger.warning(
                 "Keitaro request %s %s failed (%s)",
@@ -52,7 +62,9 @@ class KeitaroClient:
                 path,
                 type(exc).__name__,
             )
-            raise KeitaroError(f"Не удалось связаться с Keitaro: {exc}") from exc
+            raise KeitaroError(
+                f"Не удалось связаться с Keitaro ({type(exc).__name__})"
+            ) from exc
 
         if response.status_code == 204 or not response.content:
             return None

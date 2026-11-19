@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import httpx
 from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI
@@ -21,9 +22,14 @@ def upgrade_database() -> None:
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(application: FastAPI):
     upgrade_database()
-    yield
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(20.0, connect=5.0),
+        limits=httpx.Limits(max_connections=50, max_keepalive_connections=10),
+    ) as http_client:
+        application.state.keitaro_http_client = http_client
+        yield
 
 
 app = FastAPI(title="Keitaro Wrapper API", version="0.1.0", lifespan=lifespan)
