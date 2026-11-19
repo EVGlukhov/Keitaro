@@ -41,7 +41,7 @@ export function CampaignListFilters({
         <Typography as="span" variant="label">Статус</Typography>
         <SelectInput
           aria-label="Фильтр по статусу"
-          className="mt-1.5 sm:w-36"
+          className="sm:w-36"
           value={statusFilter}
           onChange={onStatusFilterChange}
           options={statusFilterOptions}
@@ -51,7 +51,7 @@ export function CampaignListFilters({
         <Typography as="span" variant="label">Сортировка</Typography>
         <SelectInput
           aria-label="Сортировка кампаний"
-          className="mt-1.5 sm:w-44"
+          className="sm:w-44"
           value={sort}
           onChange={onSortChange}
           options={sortOptions}

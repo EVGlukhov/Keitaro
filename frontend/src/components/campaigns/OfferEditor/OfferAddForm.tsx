@@ -46,7 +46,7 @@ export function OfferAddForm({
       <FormField label="Добавить оффер" htmlFor="add-offer">
         <div className="mt-2 flex gap-2">
           <SelectInput
-            className="min-w-0"
+            className="min-w-0 flex-1"
             compact
             id="add-offer"
             value={newOfferId}
