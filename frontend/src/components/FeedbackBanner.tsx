@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { X } from "lucide-react";
+import { X as XIcon } from "lucide-react";
 import { IconButton, Typography } from "@/components/ui";
 
 type FeedbackBannerProps = {
@@ -28,7 +28,7 @@ export function FeedbackBanner({ error, notice, onDismiss }: FeedbackBannerProps
         label="Закрыть"
         onClick={onDismiss}
       >
-        <X size={15} />
+        <XIcon size={15} />
       </IconButton>
     </div>
   );
