@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { CampaignCreateRequest, Stream } from "@/api";
 import {
   addOffer,
@@ -15,6 +15,7 @@ export function useCampaignPageController() {
   const dispatch = useAppDispatch();
   const selectedId = useAppSelector((state) => state.campaigns.selectedId);
   const notice = useAppSelector((state) => state.campaigns.notice);
+  const selectedIdRef = useRef(selectedId);
 
   useEffect(() => {
     void dispatch(loadOverview());
@@ -26,16 +27,23 @@ export function useCampaignPageController() {
     return () => window.clearTimeout(timer);
   }, [dispatch, notice]);
 
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
+
   const refresh = useCallback(async () => {
     const result = await dispatch(loadOverview());
-    if (loadOverview.fulfilled.match(result) && selectedId !== null) {
-      await dispatch(loadCampaign(selectedId));
+    const currentSelectedId = selectedIdRef.current;
+    if (loadOverview.fulfilled.match(result) && currentSelectedId !== null) {
+      await dispatch(loadCampaign(currentSelectedId));
     }
-  }, [dispatch, selectedId]);
+  }, [dispatch]);
 
   const create = useCallback(async (input: CampaignCreateRequest) => {
     const result = await dispatch(createCampaign(input));
-    return createCampaign.fulfilled.match(result);
+    if (!createCampaign.fulfilled.match(result)) return false;
+    selectedIdRef.current = result.payload.id;
+    return true;
   }, [dispatch]);
 
   const add = useCallback(async (offerId: number) => {
@@ -51,6 +59,7 @@ export function useCampaignPageController() {
   }, [dispatch, selectedId]);
 
   const select = useCallback((campaignId: number) => {
+    selectedIdRef.current = campaignId;
     void dispatch(loadCampaign(campaignId));
   }, [dispatch]);
 
