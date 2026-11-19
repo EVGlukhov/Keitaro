@@ -38,4 +38,21 @@ describe("CampaignList", () => {
 
     expect(screen.getByText("Кампаний пока нет. Создайте первую.")).toBeInTheDocument();
   });
+
+  it("marks the selected campaign button", () => {
+    render(
+      <CampaignList
+        campaigns={[{ id: 41, name: "Test campaign", state: "active" }]}
+        loading={false}
+        selectedId={41}
+        selectedStreamCount={0}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /Test campaign/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
 });
