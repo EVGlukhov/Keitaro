@@ -31,4 +31,21 @@ describe("FeedbackBanner", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Offer added");
   });
+
+  it("offers a retry action when one is available", async () => {
+    const user = userEvent.setup();
+    const onRetry = vi.fn();
+    render(
+      <FeedbackBanner
+        error="Не удалось загрузить кампании"
+        notice=""
+        onDismiss={vi.fn()}
+        onRetry={onRetry}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Повторить загрузку" }));
+
+    expect(onRetry).toHaveBeenCalledOnce();
+  });
 });
