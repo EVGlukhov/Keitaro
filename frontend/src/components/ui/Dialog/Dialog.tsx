@@ -23,9 +23,12 @@ export function Dialog({ labelledBy, onClose, children }: DialogProps) {
     const previousFocus = document.activeElement;
     const dialog = dialogRef.current;
     const initialFocus =
+      dialog?.querySelector<HTMLElement>("[autofocus]") ??
       dialog?.querySelector<HTMLElement>(
-        "[autofocus], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), a[href], [tabindex]:not([tabindex='-1'])",
-      ) ?? dialog;
+        "input:not([disabled]), select:not([disabled]), textarea:not([disabled])",
+      ) ??
+      dialog?.querySelector<HTMLElement>(focusableSelector) ??
+      dialog;
 
     initialFocus?.focus();
     return () => {
