@@ -19,8 +19,8 @@ export function CampaignRow({
 }: CampaignRowProps) {
   const active = isCampaignActive(campaign);
   const statusClass = clsx({
-    "text-emerald-600": Boolean(campaign.state) && active,
-    "text-slate-400": !campaign.state || !active,
+    "text-emerald-700": Boolean(campaign.state) && active,
+    "text-slate-500": !campaign.state || !active,
   });
   const statusDotClass = clsx({
     "bg-emerald-500": Boolean(campaign.state) && active,
@@ -31,7 +31,7 @@ export function CampaignRow({
   return (
     <SelectableButton
       selected={selected}
-      className="grid min-h-13 w-full grid-cols-campaign items-center gap-2 border-b border-slate-100 px-3 text-left text-slate-500 last:border-0 sm:grid-cols-campaign-wide sm:gap-3 sm:px-4"
+      className="grid min-h-13 w-full grid-cols-campaign items-center gap-2 border-b border-slate-100 px-3 text-left text-slate-600 last:border-0 sm:grid-cols-campaign-wide sm:gap-3 sm:px-4"
       onClick={onSelect}
     >
       <span className="flex min-w-0 items-center gap-2">
@@ -42,7 +42,7 @@ export function CampaignRow({
           {campaign.name}
         </Typography>
       </span>
-      <Typography variant="ui" className="font-mono text-slate-400">#{campaign.id}</Typography>
+      <Typography variant="ui" className="font-mono text-slate-600">#{campaign.id}</Typography>
       <Typography variant="ui">
         {campaign.streams?.length ?? (selected ? selectedStreamCount : "—")}
       </Typography>

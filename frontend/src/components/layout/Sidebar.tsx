@@ -28,11 +28,11 @@ export function Sidebar({ campaignCount, connected }: SidebarProps) {
           <ActivityIcon size={20} strokeWidth={2.5} />
         </div>
         <Typography variant="large" className="font-semibold tracking-tight text-slate-900">
-          keitaro<Typography variant="inherit" className="font-medium text-violet-500">studio</Typography>
+          keitaro<Typography variant="inherit" className="font-medium text-violet-600">studio</Typography>
         </Typography>
       </div>
 
-      <Typography as="div" variant="caption" className="mb-3 mt-10 px-2 font-bold tracking-label text-slate-400">
+      <Typography as="div" variant="caption" className="mb-3 mt-10 px-2 font-bold tracking-label text-slate-500">
         РАБОЧЕЕ ПРОСТРАНСТВО
       </Typography>
       <div className="flex items-center gap-2.5 rounded-lg border border-slate-200 p-2.5">
@@ -41,12 +41,12 @@ export function Sidebar({ campaignCount, connected }: SidebarProps) {
         </Typography>
         <div className="flex min-w-0 flex-col gap-0.5">
           <Typography as="strong" variant="uiSmall" className="truncate font-semibold">Keitaro tracker</Typography>
-          <Typography as="small" variant="caption" className="text-slate-400">Подключение через API</Typography>
+          <Typography as="small" variant="caption" className="text-slate-500">Подключение через API</Typography>
         </div>
         <span className={clsx("ml-auto size-2 shrink-0 rounded-full ring-4", connectionColor)} />
       </div>
 
-      <Typography as="div" variant="caption" className="mb-2 mt-8 px-2 font-bold tracking-label text-slate-400">
+      <Typography as="div" variant="caption" className="mb-2 mt-8 px-2 font-bold tracking-label text-slate-500">
         УПРАВЛЕНИЕ
       </Typography>
       <div className="mb-1 flex items-center gap-2.5 rounded-lg bg-violet-50 px-3 py-2.5 font-semibold text-violet-700">
@@ -56,7 +56,7 @@ export function Sidebar({ campaignCount, connected }: SidebarProps) {
           {campaignCount}
         </Typography>
       </div>
-      <div className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-slate-400">
+      <div className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-slate-500">
         <RadioIcon size={17} />
         <Typography variant="body">Источники и офферы</Typography>
       </div>
@@ -86,7 +86,7 @@ export function Sidebar({ campaignCount, connected }: SidebarProps) {
           </Typography>
           <div className="flex flex-col gap-0.5">
             <Typography as="strong" variant="uiSmall" className="font-semibold">Keitaro Studio</Typography>
-            <Typography as="small" variant="caption" className="text-slate-400">Тестовое окружение</Typography>
+            <Typography as="small" variant="caption" className="text-slate-500">Тестовое окружение</Typography>
           </div>
         </div>
       </div>

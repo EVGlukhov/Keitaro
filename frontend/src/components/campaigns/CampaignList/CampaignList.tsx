@@ -55,10 +55,10 @@ export function CampaignList({
         onSortChange={handleSortChange}
       />
       <div className="grid h-10 grid-cols-campaign items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-3 sm:grid-cols-campaign-wide sm:gap-3 sm:px-4">
-        <Typography variant="micro" className="font-bold tracking-wider text-slate-400">КАМПАНИЯ</Typography>
-        <Typography variant="micro" className="font-bold tracking-wider text-slate-400">ID</Typography>
-        <Typography variant="micro" className="font-bold tracking-wider text-slate-400">ПОТОКИ</Typography>
-        <Typography variant="micro" className="hidden font-bold tracking-wider text-slate-400 sm:block">СТАТУС</Typography>
+        <Typography variant="micro" className="font-bold tracking-wider text-slate-500">КАМПАНИЯ</Typography>
+        <Typography variant="micro" className="font-bold tracking-wider text-slate-500">ID</Typography>
+        <Typography variant="micro" className="font-bold tracking-wider text-slate-500">ПОТОКИ</Typography>
+        <Typography variant="micro" className="hidden font-bold tracking-wider text-slate-500 sm:block">СТАТУС</Typography>
       </div>
       {loading && campaigns.length === 0 ? (
         <CampaignListState
