@@ -50,10 +50,9 @@ describe("OfferEditor", () => {
     expect(onAddOffer).toHaveBeenCalledWith(9);
   });
 
-  it("confirms before removing an offer stream and never offers to remove geo streams", async () => {
+  it("confirms deletion in a dialog and never offers to remove geo streams", async () => {
     const user = userEvent.setup();
     const onRemoveOffer = vi.fn().mockResolvedValue(true);
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
     render(
       <OfferEditor
         campaign={campaign}
@@ -67,14 +66,18 @@ describe("OfferEditor", () => {
     expect(screen.getAllByRole("button", { name: "Удалить оффер" })).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Удалить оффер" }));
 
-    expect(confirm).toHaveBeenCalledWith("Удалить поток «Offer 8»?");
+    expect(screen.getByRole("dialog", { name: "Удалить оффер?" })).toHaveTextContent(
+      "Поток «Offer 8» будет удалён из кампании.",
+    );
+    expect(onRemoveOffer).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Удалить" }));
     expect(onRemoveOffer).toHaveBeenCalledWith(offerStream);
   });
 
-  it("does not remove an offer when confirmation is declined", async () => {
+  it("does not remove an offer when dialog is cancelled", async () => {
     const user = userEvent.setup();
     const onRemoveOffer = vi.fn().mockResolvedValue(true);
-    vi.spyOn(window, "confirm").mockReturnValue(false);
     render(
       <OfferEditor
         campaign={campaign}
@@ -86,7 +89,9 @@ describe("OfferEditor", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Удалить оффер" }));
+    await user.click(screen.getByRole("button", { name: "Отмена" }));
 
     expect(onRemoveOffer).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });
