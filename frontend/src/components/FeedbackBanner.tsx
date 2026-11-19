@@ -14,6 +14,7 @@ export function FeedbackBanner({ error, notice, onDismiss }: FeedbackBannerProps
 
   return (
     <div
+      role={error ? "alert" : "status"}
       className={clsx(
         "mb-5 flex items-center justify-between rounded-lg border px-3 py-2.5 text-xs",
         error

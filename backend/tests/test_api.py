@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -166,6 +167,19 @@ class CampaignApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 502)
         self.assertEqual(response.json()["detail"], "Keitaro is unavailable")
+
+    def test_missing_keitaro_configuration_is_reported_as_unavailable(self):
+        keitaro_override = app.dependency_overrides.pop(get_keitaro_client)
+        try:
+            with patch.dict(
+                "os.environ", {"KEITARO_URL": "", "KEITARO_API_KEY": ""}
+            ):
+                response = self.client.get("/api/campaigns")
+        finally:
+            app.dependency_overrides[get_keitaro_client] = keitaro_override
+
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["detail"], "Не задан KEITARO_URL")
 
 
 if __name__ == "__main__":

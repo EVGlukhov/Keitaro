@@ -1,7 +1,11 @@
+import logging
 from typing import Any
 from urllib.parse import urljoin
 
 import httpx
+
+
+logger = logging.getLogger(__name__)
 
 
 class KeitaroError(Exception):
@@ -32,10 +36,22 @@ class KeitaroClient:
                 response.raise_for_status()
         except httpx.HTTPStatusError as exc:
             detail = exc.response.text[:1000]
+            logger.warning(
+                "Keitaro request %s %s failed with HTTP %s",
+                method,
+                path,
+                exc.response.status_code,
+            )
             raise KeitaroError(
                 f"Keitaro ответил HTTP {exc.response.status_code}: {detail}"
             ) from exc
         except httpx.RequestError as exc:
+            logger.warning(
+                "Keitaro request %s %s failed (%s)",
+                method,
+                path,
+                type(exc).__name__,
+            )
             raise KeitaroError(f"Не удалось связаться с Keitaro: {exc}") from exc
 
         if response.status_code == 204 or not response.content:
