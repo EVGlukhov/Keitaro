@@ -1,4 +1,5 @@
 import { Campaign, Option, Stream } from "@/api";
+import { CAMPAIGN_STATE } from "@/constants/campaign";
 
 export function optionLabel(option: Option) {
   return option.name || String(option.id);
@@ -10,5 +11,5 @@ export function offerId(stream: Stream): number | undefined {
 }
 
 export function isCampaignActive(campaign: Campaign) {
-  return campaign.state?.toLowerCase() === "active";
+  return campaign.state?.toLowerCase() === CAMPAIGN_STATE.ACTIVE;
 }
