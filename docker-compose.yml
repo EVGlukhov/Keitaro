@@ -2,6 +2,7 @@ services:
   backend:
     build:
       context: ./backend
+    restart: unless-stopped
     environment:
       KEITARO_URL: ${KEITARO_URL:-}
       KEITARO_API_KEY: ${KEITARO_API_KEY:-}
@@ -10,7 +11,7 @@ services:
     volumes:
       - backend_data:/data
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     healthcheck:
       test:
         - CMD
@@ -25,11 +26,12 @@ services:
   frontend:
     build:
       context: ./frontend
+    restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     ports:
-      - "5173:80"
+      - "127.0.0.1:5173:80"
 
 volumes:
   backend_data:

@@ -47,7 +47,7 @@ KEITARO_API_KEY=your-api-key
 docker compose up --build
 ```
 
-Интерфейс будет доступен по `http://localhost:5173`, а Swagger UI — по `http://localhost:8000/docs`. SQLite-база сохраняется в volume `backend_data`.
+Интерфейс будет доступен по `http://localhost:5173`, а Swagger UI — по `http://localhost:8000/docs`. Порты привязаны к localhost и недоступны напрямую из сети. Для развёртывания за reverse proxy настройте его на эти локальные порты. SQLite-база сохраняется в volume `backend_data`.
 
 Остановить контейнеры можно командой `docker compose down`; для удаления также базы выполните `docker compose down -v`.
 
