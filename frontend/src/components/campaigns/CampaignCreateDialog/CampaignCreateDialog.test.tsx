@@ -75,6 +75,32 @@ describe("CampaignCreateDialog", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it("does not submit an invalid country code", async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(true);
+    render(
+      <CampaignCreateDialog
+        metadata={metadata}
+        saving={false}
+        onCreate={onCreate}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByRole("textbox", { name: "Название кампании" }), "Test");
+    await user.type(screen.getByRole("textbox", { name: "Гео-код страны" }), "U");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Оффер" }), "8");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Домен" }), "2");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Группа" }), "3");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Источник трафика" }),
+      "4",
+    );
+    await user.click(screen.getByRole("button", { name: "Создать кампанию" }));
+
+    expect(onCreate).not.toHaveBeenCalled();
+  });
+
   it("closes only when the backdrop is clicked", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
