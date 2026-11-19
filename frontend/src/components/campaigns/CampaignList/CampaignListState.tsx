@@ -8,7 +8,7 @@ type CampaignListStateProps = {
 
 export function CampaignListState({ icon, message }: CampaignListStateProps) {
   return (
-    <div className="flex min-h-44 flex-col items-center justify-center gap-2 text-slate-400">
+    <div className="flex min-h-44 flex-col items-center justify-center gap-2 text-slate-500">
       {icon}
       <Typography variant="uiSmall">{message}</Typography>
     </div>

@@ -41,7 +41,7 @@ function SummaryCard({
       >
         {value}
       </Typography>
-      <Typography as="small" variant="caption" className="mt-1 text-slate-400">
+      <Typography as="small" variant="caption" className="mt-1 text-slate-500">
         {detail}
       </Typography>
     </div>
@@ -75,7 +75,7 @@ export function CampaignSummary({
         value={offerCount}
         detail="В выбранной кампании"
         icon={<Globe2Icon size={17} />}
-        iconClass="bg-emerald-50 text-emerald-600"
+        iconClass="bg-emerald-50 text-emerald-700"
         largeValue
       />
     </div>

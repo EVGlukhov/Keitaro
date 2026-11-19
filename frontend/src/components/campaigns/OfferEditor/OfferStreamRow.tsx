@@ -34,7 +34,7 @@ export function OfferStreamRow({
       </Typography>
       {isOffer ? (
         <IconButton
-          className="border-0 bg-transparent text-slate-400 hover:bg-rose-50 hover:text-rose-600"
+          className="border-0 bg-transparent text-slate-500 hover:bg-rose-50 hover:text-rose-600"
           size="small"
           label="Удалить оффер"
           disabled={saving}
