@@ -187,6 +187,17 @@ export interface components {
             /** Offer Id */
             offer_id: number;
         };
+        /** StreamOfferResponse */
+        StreamOfferResponse: {
+            /** Offer Id */
+            offer_id: number;
+            /** Share */
+            share?: number | null;
+            /** State */
+            state?: string | null;
+        } & {
+            [key: string]: unknown;
+        };
         /** StreamResponse */
         StreamResponse: {
             /** Id */
@@ -201,6 +212,8 @@ export interface components {
             action_options?: {
                 [key: string]: unknown;
             } | null;
+            /** Offers */
+            offers?: components["schemas"]["StreamOfferResponse"][] | null;
         } & {
             [key: string]: unknown;
         };

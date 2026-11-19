@@ -570,6 +570,42 @@
         ],
         "title": "OfferCreate"
       },
+      "StreamOfferResponse": {
+        "properties": {
+          "offer_id": {
+            "type": "integer",
+            "title": "Offer Id"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "offer_id"
+        ],
+        "title": "StreamOfferResponse"
+      },
       "StreamResponse": {
         "properties": {
           "id": {
@@ -620,6 +656,20 @@
               }
             ],
             "title": "Action Options"
+          },
+          "offers": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/StreamOfferResponse"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offers"
           }
         },
         "additionalProperties": true,

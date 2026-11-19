@@ -1,4 +1,6 @@
 import logging
+import re
+import secrets
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -90,11 +92,12 @@ class CampaignService:
         campaign = await self.client.create_campaign(
             {
                 "name": data.name,
+                "alias": self._campaign_alias(data.name),
                 "domain_id": data.domain_id,
-                "group_id": data.group_id,
+                "group_id": str(data.group_id),
                 "traffic_source_id": data.traffic_source_id,
                 "state": "active",
-                "type": "classic",
+                "type": "position",
             }
         )
         campaign_id = self._campaign_id(campaign)
@@ -105,6 +108,7 @@ class CampaignService:
                     campaign_id=campaign_id,
                     name=f"Гео {data.country_code} → Google",
                     action_type="http",
+                    schema="redirect",
                     action_options={"url": "https://www.google.com"},
                     position=1,
                     filters=[
@@ -120,8 +124,15 @@ class CampaignService:
                 self._stream_payload(
                     campaign_id=campaign_id,
                     name=f"Оффер {data.offer_id}",
-                    action_type="offer",
-                    action_options={"offer_id": data.offer_id},
+                    schema="landings",
+                    action_type="http",
+                    offers=[
+                        {
+                            "offer_id": data.offer_id,
+                            "share": 100,
+                            "state": "active",
+                        }
+                    ],
                     position=2,
                     stream_type="default",
                 )
@@ -160,8 +171,15 @@ class CampaignService:
             self._stream_payload(
                 campaign_id=campaign_id,
                 name=f"Оффер {data.offer_id}",
-                action_type="offer",
-                action_options={"offer_id": data.offer_id},
+                schema="landings",
+                action_type="http",
+                offers=[
+                    {
+                        "offer_id": data.offer_id,
+                        "share": 100,
+                        "state": "active",
+                    }
+                ],
                 position=next_position,
             )
         )
@@ -179,7 +197,10 @@ class CampaignService:
         )
         if stream is None:
             raise CampaignNotFoundError("Поток не найден в кампании")
-        if stream.get("action_type") != "offer":
+        offers = stream.get("offers")
+        if stream.get("action_type") != "offer" and not (
+            isinstance(offers, list) and offers
+        ):
             raise InvalidCampaignOperationError(
                 "Удалять можно только поток оффера"
             )
@@ -194,24 +215,36 @@ class CampaignService:
         return campaign_id
 
     @staticmethod
+    def _campaign_alias(name: str) -> str:
+        slug = re.sub(r"[^a-z0-9]+", "-", name.casefold()).strip("-")
+        return f"{slug[:48] or 'campaign'}-{secrets.token_hex(4)}"
+
+    @staticmethod
     def _stream_payload(
         campaign_id: int,
         name: str,
+        schema: str,
         action_type: str,
-        action_options: dict[str, Any],
         position: int,
+        action_options: dict[str, Any] | None = None,
         filters: list[dict[str, Any]] | None = None,
+        offers: list[dict[str, Any]] | None = None,
         stream_type: str = "regular",
     ) -> dict[str, Any]:
-        return {
+        payload: dict[str, Any] = {
             "campaign_id": campaign_id,
+            "schema": schema,
             "name": name,
             "type": stream_type,
             "position": position,
             "action_type": action_type,
-            "action_options": action_options,
             "filters": filters or [],
         }
+        if action_options is not None:
+            payload["action_options"] = action_options
+        if offers is not None:
+            payload["offers"] = offers
+        return payload
 
     async def _cleanup_partial_campaign(self, campaign_id: int) -> None:
         try:

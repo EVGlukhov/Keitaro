@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { LoaderCircle as LoaderCircleIcon, Trash2 as Trash2Icon } from "lucide-react";
 import { Metadata, Stream } from "@/api";
-import { offerId, optionLabel } from "@/utils/campaign";
+import { isOfferStream, offerId, optionLabel } from "@/utils/campaign";
 import { IconButton, Typography } from "@/components/ui";
 
 type OfferStreamRowProps = {
@@ -19,7 +19,7 @@ export function OfferStreamRow({
 }: OfferStreamRowProps) {
   const id = offerId(stream);
   const offer = metadata?.offers.find((item) => item.id === id);
-  const isOffer = stream.action_type === "offer";
+  const isOffer = isOfferStream(stream);
 
   return (
     <div className="grid min-h-10 grid-cols-stream items-center gap-1.5 border-b border-slate-100 last:border-0">

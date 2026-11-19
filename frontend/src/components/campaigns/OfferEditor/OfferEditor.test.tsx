@@ -17,8 +17,9 @@ const metadata: Metadata = {
 const offerStream: Stream = {
   id: 101,
   name: "Offer 8",
-  action_type: "offer",
-  action_options: { offer_id: 8 },
+  schema: "landings",
+  action_type: "http",
+  offers: [{ offer_id: 8, share: 100, state: "active" }],
 };
 
 const campaign: Campaign = {
