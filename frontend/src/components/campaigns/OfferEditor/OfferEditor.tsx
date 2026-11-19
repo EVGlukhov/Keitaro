@@ -1,4 +1,8 @@
-import { CircleHelp as CircleHelpIcon, Route as RouteIcon } from "lucide-react";
+import {
+  CircleHelp as CircleHelpIcon,
+  LoaderCircle as LoaderCircleIcon,
+  Route as RouteIcon,
+} from "lucide-react";
 import { Campaign, Metadata, Stream } from "@/api";
 import { Button, Dialog, Typography } from "@/components/ui";
 import { OfferAddForm } from "@/components/campaigns/OfferEditor/OfferAddForm";
@@ -7,16 +11,22 @@ import { useOfferRemoval } from "@/hooks/useOfferRemoval";
 
 type OfferEditorProps = {
   campaign: Campaign | null;
+  detailLoading: boolean;
+  detailError: string;
   metadata: Metadata | null;
   saving: boolean;
+  onRetryDetail: () => void;
   onAddOffer: (offerId: number) => Promise<boolean>;
   onRemoveOffer: (stream: Stream) => Promise<boolean>;
 };
 
 export function OfferEditor({
   campaign,
+  detailLoading,
+  detailError,
   metadata,
   saving,
+  onRetryDetail,
   onAddOffer,
   onRemoveOffer,
 }: OfferEditorProps) {
@@ -47,7 +57,27 @@ export function OfferEditor({
           )}
         </div>
 
-        {!campaign ? (
+        {!campaign && detailLoading ? (
+          <div
+            role="status"
+            className="flex min-h-56 flex-col items-center justify-center gap-2 text-slate-400"
+          >
+            <LoaderCircleIcon className="animate-spin" size={22} />
+            <Typography variant="uiSmall">Загружаем кампанию…</Typography>
+          </div>
+        ) : !campaign && detailError ? (
+          <div
+            role="alert"
+            className="flex min-h-56 flex-col items-center justify-center gap-3 text-center"
+          >
+            <Typography variant="uiSmall" className="max-w-64 text-rose-700">
+              {detailError}
+            </Typography>
+            <Button variant="secondary" size="small" onClick={onRetryDetail}>
+              Повторить загрузку
+            </Button>
+          </div>
+        ) : !campaign ? (
           <div className="flex min-h-56 flex-col items-center justify-center text-center">
             <div className="mb-3 grid size-11 place-items-center rounded-xl bg-violet-50 text-violet-600">
               <RouteIcon size={22} />

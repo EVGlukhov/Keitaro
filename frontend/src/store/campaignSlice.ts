@@ -28,6 +28,7 @@ type CampaignState = {
   selectedCampaign: Campaign | null;
   loading: boolean;
   detailLoading: boolean;
+  detailError: string;
   connected: boolean | null;
   saving: boolean;
   error: string;
@@ -54,6 +55,7 @@ const initialState: CampaignState = {
   selectedCampaign: null,
   loading: true,
   detailLoading: false,
+  detailError: "",
   connected: null,
   saving: false,
   error: "",
@@ -229,12 +231,13 @@ const campaignSlice = createSlice({
         state.selectedId = action.meta.arg;
         state.selectedCampaign = null;
         state.detailLoading = true;
-        state.error = "";
+        state.detailError = "";
       })
       .addCase(loadCampaign.fulfilled, (state, action) => {
         if (action.meta.requestId !== state.detailRequestId) return;
         state.detailRequestId = null;
         state.detailLoading = false;
+        state.detailError = "";
         state.selectedId = action.payload.id;
         state.selectedCampaign = action.payload;
         const index = state.campaigns.findIndex((item) => item.id === action.payload.id);
@@ -244,7 +247,8 @@ const campaignSlice = createSlice({
         if (action.meta.requestId !== state.detailRequestId) return;
         state.detailRequestId = null;
         state.detailLoading = false;
-        state.error = action.payload ?? action.error.message ?? "Не удалось открыть кампанию";
+        state.detailError =
+          action.payload ?? action.error.message ?? "Не удалось открыть кампанию";
       })
       .addCase(createCampaign.pending, (state) => {
         state.saving = true;

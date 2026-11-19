@@ -37,8 +37,11 @@ describe("OfferEditor", () => {
     render(
       <OfferEditor
         campaign={campaign}
+        detailLoading={false}
+        detailError=""
         metadata={metadata}
         saving={false}
+        onRetryDetail={vi.fn()}
         onAddOffer={onAddOffer}
         onRemoveOffer={vi.fn().mockResolvedValue(true)}
       />,
@@ -57,8 +60,11 @@ describe("OfferEditor", () => {
     render(
       <OfferEditor
         campaign={campaign}
+        detailLoading={false}
+        detailError=""
         metadata={metadata}
         saving={false}
+        onRetryDetail={vi.fn()}
         onAddOffer={onAddOffer}
         onRemoveOffer={vi.fn().mockResolvedValue(true)}
       />,
@@ -79,8 +85,11 @@ describe("OfferEditor", () => {
     render(
       <OfferEditor
         campaign={campaign}
+        detailLoading={false}
+        detailError=""
         metadata={metadata}
         saving={false}
+        onRetryDetail={vi.fn()}
         onAddOffer={vi.fn().mockResolvedValue(true)}
         onRemoveOffer={onRemoveOffer}
       />,
@@ -104,8 +113,11 @@ describe("OfferEditor", () => {
     render(
       <OfferEditor
         campaign={campaign}
+        detailLoading={false}
+        detailError=""
         metadata={metadata}
         saving={false}
+        onRetryDetail={vi.fn()}
         onAddOffer={vi.fn().mockResolvedValue(true)}
         onRemoveOffer={onRemoveOffer}
       />,
@@ -116,5 +128,44 @@ describe("OfferEditor", () => {
 
     expect(onRemoveOffer).not.toHaveBeenCalled();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows a loading state while campaign details are fetched", () => {
+    render(
+      <OfferEditor
+        campaign={null}
+        detailLoading
+        detailError=""
+        metadata={metadata}
+        saving={false}
+        onRetryDetail={vi.fn()}
+        onAddOffer={vi.fn().mockResolvedValue(true)}
+        onRemoveOffer={vi.fn().mockResolvedValue(true)}
+      />,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("Загружаем кампанию…");
+  });
+
+  it("retries a failed campaign detail request", async () => {
+    const user = userEvent.setup();
+    const onRetryDetail = vi.fn();
+    render(
+      <OfferEditor
+        campaign={null}
+        detailLoading={false}
+        detailError="Не удалось открыть кампанию"
+        metadata={metadata}
+        saving={false}
+        onRetryDetail={onRetryDetail}
+        onAddOffer={vi.fn().mockResolvedValue(true)}
+        onRemoveOffer={vi.fn().mockResolvedValue(true)}
+      />,
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Не удалось открыть кампанию");
+    await user.click(screen.getByRole("button", { name: "Повторить загрузку" }));
+
+    expect(onRetryDetail).toHaveBeenCalledOnce();
   });
 });
