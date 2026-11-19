@@ -84,6 +84,12 @@ class CampaignApiTests(unittest.TestCase):
         Base.metadata.drop_all(bind=self.engine)
         self.engine.dispose()
 
+    def test_health_endpoint_is_available_under_api_prefix(self):
+        response = self.client.get("/api/health")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "ok"})
+
     def test_create_add_and_delete_offer_workflow(self):
         response = self.client.post(
             "/api/campaigns",
