@@ -55,8 +55,22 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate Compose configuration
         run: docker compose config --quiet
-      - name: Build Docker images
-        run: docker compose build
+      - name: Build and start Docker services
+        run: docker compose up --detach --build
+      - name: Smoke test frontend and proxied backend health
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:5173/health; then
+              curl --fail --silent http://127.0.0.1:5173/ | grep -q '<title>Keitaro Studio</title>'
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Compose health endpoint did not become ready" >&2
+          exit 1
+      - name: Stop Docker services
+        if: always()
+        run: docker compose down --volumes
 
   security:
     runs-on: ubuntu-latest
