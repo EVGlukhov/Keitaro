@@ -1,9 +1,8 @@
 import clsx from "clsx";
-import { Layers3, LoaderCircle } from "lucide-react";
+import { Layers3 as Layers3Icon, LoaderCircle as LoaderCircleIcon } from "lucide-react";
 import { Campaign } from "@/api";
-import { Typography } from "@/components/ui";
+import { SelectableButton, Typography } from "@/components/ui";
 import { isCampaignActive } from "@/utils/campaign";
-import { CampaignListButton } from "./CampaignListButton";
 
 type CampaignListProps = {
   campaigns: Campaign[];
@@ -30,12 +29,12 @@ export function CampaignList({
       </div>
       {loading && campaigns.length === 0 ? (
         <div className="flex min-h-44 flex-col items-center justify-center gap-2 text-slate-400">
-          <LoaderCircle className="animate-spin" size={22} />
+          <LoaderCircleIcon className="animate-spin" size={22} />
           <Typography variant="uiSmall">Загружаем кампании…</Typography>
         </div>
       ) : campaigns.length === 0 ? (
         <div className="flex min-h-44 flex-col items-center justify-center gap-2 text-slate-400">
-          <Layers3 size={22} />
+          <Layers3Icon size={22} />
           <Typography variant="uiSmall">Кампаний пока нет. Создайте первую.</Typography>
         </div>
       ) : campaigns.map((campaign) => {
@@ -51,14 +50,15 @@ export function CampaignList({
         });
 
         return (
-          <CampaignListButton
+          <SelectableButton
             selected={selectedId === campaign.id}
             key={campaign.id}
+            className="grid min-h-13 w-full grid-cols-campaign items-center gap-2 border-b border-slate-100 px-3 text-left text-slate-500 last:border-0 sm:grid-cols-campaign-wide sm:gap-3 sm:px-4"
             onClick={() => onSelect(campaign.id)}
           >
             <span className="flex min-w-0 items-center gap-2">
               <span className="grid size-7 shrink-0 place-items-center rounded-md bg-violet-50 text-violet-600">
-                <Layers3 size={16} />
+                <Layers3Icon size={16} />
               </span>
               <Typography as="strong" variant="ui" className="truncate font-semibold text-slate-700">
                 {campaign.name}
@@ -72,7 +72,7 @@ export function CampaignList({
               <i className={clsx("size-1.5 rounded-full", statusDotClass)} />
               {active ? "Активна" : campaign.state ? "Выключена" : "—"}
             </Typography>
-          </CampaignListButton>
+          </SelectableButton>
         );
       })}
     </div>

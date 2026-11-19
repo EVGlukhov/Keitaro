@@ -1,6 +1,12 @@
 import clsx from "clsx";
 import { FormEvent, useState } from "react";
-import { CircleHelp, LoaderCircle, Plus, Route, Trash2 } from "lucide-react";
+import {
+  CircleHelp as CircleHelpIcon,
+  LoaderCircle as LoaderCircleIcon,
+  Plus as PlusIcon,
+  Route as RouteIcon,
+  Trash2 as Trash2Icon,
+} from "lucide-react";
 import { Campaign, Metadata, Stream } from "@/api";
 import { offerId, optionLabel } from "@/utils/campaign";
 import { Button, FormField, IconButton, SelectInput, Typography } from "@/components/ui";
@@ -56,7 +62,7 @@ export function OfferEditor({
       {!campaign ? (
         <div className="flex min-h-56 flex-col items-center justify-center text-center">
           <div className="mb-3 grid size-11 place-items-center rounded-xl bg-violet-50 text-violet-600">
-            <Route size={22} />
+            <RouteIcon size={22} />
           </div>
           <Typography as="strong" variant="uiSmall" className="font-semibold text-slate-700">
             Выберите кампанию
@@ -94,7 +100,7 @@ export function OfferEditor({
                   loading={saving}
                   className="shrink-0"
                 >
-                  {!saving && <Plus size={15} />}
+                  {!saving && <PlusIcon size={15} />}
                   Добавить
                 </Button>
               </div>
@@ -122,7 +128,7 @@ export function OfferEditor({
             ))}
           </div>
           <div className="mt-3 flex items-start gap-2 rounded-md bg-violet-50/70 px-2 py-2.5">
-            <CircleHelp size={15} className="shrink-0 text-violet-500" />
+            <CircleHelpIcon size={15} className="shrink-0 text-violet-500" />
             <Typography variant="caption" className="leading-relaxed text-violet-800/70">
               Удаляются только потоки типа «оффер». Гео-поток кампании защищён.
             </Typography>
@@ -167,7 +173,7 @@ function StreamRow({
           disabled={saving}
           onClick={onRemove}
         >
-          {saving ? <LoaderCircle className="animate-spin" size={15} /> : <Trash2 size={15} />}
+          {saving ? <LoaderCircleIcon className="animate-spin" size={15} /> : <Trash2Icon size={15} />}
         </IconButton>
       ) : <span />}
     </div>

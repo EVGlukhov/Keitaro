@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   AppFooter,
-  CampaignCreateModal,
+  CampaignCreateDialog,
   CampaignList,
   CampaignListHeading,
   CampaignPageHeading,
@@ -83,7 +83,7 @@ export default function App() {
       </section>
 
       {createOpen && metadata && (
-        <CampaignCreateModal
+        <CampaignCreateDialog
           metadata={metadata}
           saving={saving}
           onClose={() => setCreateOpen(false)}

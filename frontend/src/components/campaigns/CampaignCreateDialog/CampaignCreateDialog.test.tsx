@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { CampaignCreateModal } from "./CampaignCreateModal";
+import { CampaignCreateDialog } from "./CampaignCreateDialog";
 import { Metadata } from "@/api";
 
 const metadata: Metadata = {
@@ -11,13 +11,13 @@ const metadata: Metadata = {
   offers: [{ id: 8, name: "Offer A" }],
 };
 
-describe("CampaignCreateModal", () => {
+describe("CampaignCreateDialog", () => {
   it("submits normalized form values and closes after success", async () => {
     const user = userEvent.setup();
     const onCreate = vi.fn().mockResolvedValue(true);
     const onClose = vi.fn();
     render(
-      <CampaignCreateModal
+      <CampaignCreateDialog
         metadata={metadata}
         saving={false}
         onCreate={onCreate}
@@ -52,7 +52,7 @@ describe("CampaignCreateModal", () => {
     const onCreate = vi.fn().mockResolvedValue(false);
     const onClose = vi.fn();
     render(
-      <CampaignCreateModal
+      <CampaignCreateDialog
         metadata={metadata}
         saving={false}
         onCreate={onCreate}
@@ -73,5 +73,24 @@ describe("CampaignCreateModal", () => {
 
     expect(onCreate).toHaveBeenCalledOnce();
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("closes only when the backdrop is clicked", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(
+      <CampaignCreateDialog
+        metadata={metadata}
+        saving={false}
+        onCreate={vi.fn()}
+        onClose={onClose}
+      />,
+    );
+
+    await user.click(screen.getByRole("dialog"));
+    expect(onClose).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("presentation"));
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });
