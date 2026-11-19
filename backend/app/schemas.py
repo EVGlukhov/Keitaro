@@ -1,7 +1,7 @@
 import re
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CampaignCreate(BaseModel):
@@ -33,15 +33,38 @@ class OfferCreate(BaseModel):
     offer_id: int = Field(gt=0)
 
 
+class KeitaroOption(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: int
+    name: str | None = None
+
+
+class StreamResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: int
+    name: str | None = None
+    position: int | None = None
+    action_type: str | None = None
+    action_options: dict[str, Any] | None = None
+
+
 class CampaignResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     id: int
     name: str
     state: str | None = None
-    streams: list[dict[str, Any]] = Field(default_factory=list)
+    streams: list[StreamResponse] = Field(default_factory=list)
 
 
 class MetadataResponse(BaseModel):
-    domains: list[dict[str, Any]]
-    groups: list[dict[str, Any]]
-    traffic_sources: list[dict[str, Any]]
-    offers: list[dict[str, Any]]
+    domains: list[KeitaroOption]
+    groups: list[KeitaroOption]
+    traffic_sources: list[KeitaroOption]
+    offers: list[KeitaroOption]
+
+
+class DeleteOfferResponse(BaseModel):
+    deleted: int

@@ -135,6 +135,23 @@ class CampaignApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
 
+    def test_openapi_documents_campaign_api_response_models(self):
+        schema = self.client.get("/openapi.json").json()
+        paths = schema["paths"]
+
+        self.assertEqual(
+            paths["/api/campaigns"]["get"]["responses"]["200"]["content"][
+                "application/json"
+            ]["schema"]["items"]["$ref"],
+            "#/components/schemas/CampaignResponse",
+        )
+        self.assertEqual(
+            paths["/api/campaigns/{campaign_id}/offers"]["post"]["responses"][
+                "201"
+            ]["content"]["application/json"]["schema"]["$ref"],
+            "#/components/schemas/StreamResponse",
+        )
+
     def test_geo_stream_cannot_be_deleted(self):
         campaign = self.client.post(
             "/api/campaigns",

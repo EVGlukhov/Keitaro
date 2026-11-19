@@ -2,7 +2,13 @@ import unittest
 
 from pydantic import ValidationError
 
-from app.schemas import CampaignCreate, OfferCreate
+from app.schemas import (
+    CampaignCreate,
+    CampaignResponse,
+    DeleteOfferResponse,
+    KeitaroOption,
+    OfferCreate,
+)
 
 
 class CampaignSchemaTests(unittest.TestCase):
@@ -33,6 +39,29 @@ class CampaignSchemaTests(unittest.TestCase):
     def test_offer_id_must_be_positive(self):
         with self.assertRaises(ValidationError):
             OfferCreate(offer_id=0)
+
+    def test_keitaro_response_models_preserve_extra_fields(self):
+        option = KeitaroOption.model_validate(
+            {"id": 8, "name": "Offer", "state": "active"}
+        )
+        campaign = CampaignResponse.model_validate(
+            {
+                "id": 41,
+                "name": "Campaign",
+                "streams": [
+                    {
+                        "id": 100,
+                        "action_type": "offer",
+                        "action_options": {"offer_id": 8},
+                        "filters": [],
+                    }
+                ],
+            }
+        )
+
+        self.assertEqual(option.model_dump()["state"], "active")
+        self.assertEqual(campaign.streams[0].model_dump()["filters"], [])
+        self.assertEqual(DeleteOfferResponse(deleted=100).deleted, 100)
 
 
 if __name__ == "__main__":

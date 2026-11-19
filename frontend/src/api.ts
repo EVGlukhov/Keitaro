@@ -1,40 +1,11 @@
-export type Option = {
-  id: number;
-  name: string;
-  [key: string]: unknown;
-};
+import type { components } from "./api.generated";
 
-export type Stream = {
-  id: number;
-  name?: string;
-  position?: number;
-  action_type?: string;
-  action_options?: { offer_id?: number; [key: string]: unknown };
-  [key: string]: unknown;
-};
-
-export type Campaign = {
-  id: number;
-  name: string;
-  state?: string | null;
-  streams?: Stream[];
-};
-
-export type Metadata = {
-  domains: Option[];
-  groups: Option[];
-  traffic_sources: Option[];
-  offers: Option[];
-};
-
-export type CampaignCreateRequest = {
-  name: string;
-  country_code: string;
-  offer_id: number;
-  domain_id: number;
-  group_id: number;
-  traffic_source_id: number;
-};
+export type Option = components["schemas"]["KeitaroOption"];
+export type Stream = components["schemas"]["StreamResponse"];
+export type Campaign = components["schemas"]["CampaignResponse"];
+export type Metadata = components["schemas"]["MetadataResponse"];
+export type CampaignCreateRequest = components["schemas"]["CampaignCreate"];
+export type DeleteOfferResponse = components["schemas"]["DeleteOfferResponse"];
 
 export class ApiError extends Error {
   constructor(
@@ -111,7 +82,7 @@ export const api = {
       body: JSON.stringify({ offer_id: offerId }),
     }),
   deleteOffer: (campaignId: number, streamId: number) =>
-    request<{ deleted: number }>(
+    request<DeleteOfferResponse>(
       `/api/campaigns/${campaignId}/offers/${streamId}`,
       { method: "DELETE" },
     ),
