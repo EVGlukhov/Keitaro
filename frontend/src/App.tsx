@@ -20,6 +20,8 @@ export default function App() {
     campaigns,
     campaignCount,
     connected,
+    detailError,
+    detailLoading,
     error,
     loading,
     listLoading,
@@ -78,10 +80,13 @@ export default function App() {
             />
             <OfferEditor
               campaign={selectedCampaign}
+              detailError={detailError}
+              detailLoading={detailLoading}
               metadata={metadata}
               saving={saving}
               onAddOffer={page.addOffer}
               onRemoveOffer={page.removeOffer}
+              onRetryDetail={page.retryCampaign}
             />
           </div>
 

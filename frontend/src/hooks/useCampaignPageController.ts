@@ -51,6 +51,13 @@ export function useCampaignPageController() {
     [dispatch],
   );
 
+  const retryCampaign = useCallback(() => {
+    const currentSelectedId = selectedIdRef.current;
+    if (currentSelectedId !== null) {
+      void dispatch(loadCampaign(currentSelectedId));
+    }
+  }, [dispatch]);
+
   const create = useCallback(async (input: CampaignCreateRequest) => {
     const result = await dispatch(createCampaign(input));
     if (!createCampaign.fulfilled.match(result)) return false;
@@ -86,6 +93,7 @@ export function useCampaignPageController() {
     createCampaign: create,
     dismissFeedback,
     queryCampaigns,
+    retryCampaign,
     refresh,
     removeOffer: remove,
     selectCampaign: select,

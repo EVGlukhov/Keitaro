@@ -96,6 +96,22 @@ describe("campaign request ordering", () => {
     expect(state.detailLoading).toBe(false);
   });
 
+  it("keeps detail failures local and clears them when retrying", () => {
+    let state = campaignReducer(undefined, loadCampaign.pending("failed", 1));
+    state = campaignReducer(
+      state,
+      loadCampaign.rejected(new Error("Detail unavailable"), "failed", 1),
+    );
+
+    expect(state.detailError).toBe("Detail unavailable");
+    expect(state.error).toBe("");
+    expect(state.detailLoading).toBe(false);
+
+    state = campaignReducer(state, loadCampaign.pending("retry", 1));
+    expect(state.detailError).toBe("");
+    expect(state.detailLoading).toBe(true);
+  });
+
   it("does not reselect a campaign when its offer mutation finishes late", () => {
     const updatedFirstCampaign = {
       ...firstCampaign,
