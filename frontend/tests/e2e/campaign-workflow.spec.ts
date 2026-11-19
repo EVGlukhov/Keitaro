@@ -114,8 +114,10 @@ test("creates a campaign, adds an offer, and removes only the offer stream", asy
   await expect(page.getByText("Offer B", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Удалить оффер" })).toHaveCount(2);
 
-  page.on("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Удалить оффер" }).last().click();
+  const removeDialog = page.getByRole("dialog", { name: "Удалить оффер?" });
+  await expect(removeDialog).toBeVisible();
+  await removeDialog.getByRole("button", { name: "Удалить" }).click();
   await expect(page.getByText("Offer B", { exact: true })).not.toBeVisible();
   await expect(page.getByRole("button", { name: "Удалить оффер" })).toHaveCount(1);
   await expect(page.getByText("Гео US → Google")).toBeVisible();

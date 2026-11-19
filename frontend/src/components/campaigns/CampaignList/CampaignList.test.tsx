@@ -55,4 +55,61 @@ describe("CampaignList", () => {
       "true",
     );
   });
+
+  it("searches by name or ID and filters by campaign status", async () => {
+    const user = userEvent.setup();
+    render(
+      <CampaignList
+        campaigns={[
+          { id: 41, name: "Spring active", state: "active" },
+          { id: 42, name: "Spring paused", state: "disabled" },
+          { id: 43, name: "Summer active", state: "active" },
+        ]}
+        loading={false}
+        selectedId={null}
+        selectedStreamCount={0}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByRole("searchbox", { name: "Поиск кампаний" }), "spring");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Фильтр по статусу" }), "active");
+
+    expect(screen.getByRole("button", { name: /Spring active/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Spring paused/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Summer active/ })).not.toBeInTheDocument();
+
+    await user.clear(screen.getByRole("searchbox", { name: "Поиск кампаний" }));
+    await user.type(screen.getByRole("searchbox", { name: "Поиск кампаний" }), "43");
+    expect(screen.getByRole("button", { name: /Summer active/ })).toBeInTheDocument();
+  });
+
+  it("sorts campaigns by name or ID", async () => {
+    const user = userEvent.setup();
+    render(
+      <CampaignList
+        campaigns={[
+          { id: 9, name: "Zeta", state: "active" },
+          { id: 3, name: "Alpha", state: "active" },
+        ]}
+        loading={false}
+        selectedId={null}
+        selectedStreamCount={0}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    const sort = screen.getByRole("combobox", { name: "Сортировка кампаний" });
+    await user.selectOptions(sort, "name");
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
+      expect.stringContaining("Alpha"),
+      expect.stringContaining("Zeta"),
+    ]);
+
+    await user.selectOptions(sort, "id-desc");
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
+      expect.stringContaining("Zeta"),
+      expect.stringContaining("Alpha"),
+    ]);
+  });
 });
