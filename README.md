@@ -104,3 +104,12 @@ npm test
 ```
 
 Frontend e2e-тесты перехватывают API-запросы и не требуют запущенного backend или доступа к Keitaro.
+
+TypeScript-типы API генерируются из OpenAPI-схемы FastAPI. Установите backend- и frontend-зависимости, затем выполните:
+
+```bash
+cd frontend
+npm run generate:api-types
+```
+
+Команда обновляет `backend/openapi.json` и `frontend/src/api.generated.ts`. Закоммитьте оба файла при изменении API; CI проверяет их актуальность.

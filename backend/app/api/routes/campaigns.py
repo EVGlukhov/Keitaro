@@ -4,13 +4,19 @@ from sqlalchemy.orm import Session
 from ..dependencies import get_keitaro_client
 from ...database import get_db
 from ...keitaro import KeitaroClient
-from ...schemas import CampaignCreate, CampaignResponse, OfferCreate
+from ...schemas import (
+    CampaignCreate,
+    CampaignResponse,
+    DeleteOfferResponse,
+    OfferCreate,
+    StreamResponse,
+)
 from ...services.campaign_service import CampaignService
 
 router = APIRouter(prefix="/campaigns", tags=["Campaigns"])
 
 
-@router.get("")
+@router.get("", response_model=list[CampaignResponse])
 async def list_campaigns(client: KeitaroClient = Depends(get_keitaro_client)):
     return await CampaignService(client).list_campaigns()
 
@@ -34,6 +40,7 @@ async def get_campaign(
 
 @router.post(
     "/{campaign_id}/offers",
+    response_model=StreamResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def add_offer(
@@ -44,7 +51,10 @@ async def add_offer(
     return await CampaignService(client).add_offer(campaign_id, body)
 
 
-@router.delete("/{campaign_id}/offers/{stream_id}")
+@router.delete(
+    "/{campaign_id}/offers/{stream_id}",
+    response_model=DeleteOfferResponse,
+)
 async def delete_offer(
     campaign_id: int,
     stream_id: int,
