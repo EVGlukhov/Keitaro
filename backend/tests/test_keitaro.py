@@ -51,6 +51,53 @@ class KeitaroClientTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaisesRegex(KeitaroError, "неожиданный список"):
                 await client.list("offers")
 
+    async def test_campaign_list_rejects_malformed_campaigns(self):
+        transport = httpx.MockTransport(
+            lambda _: httpx.Response(200, json=[{"id": 41}])
+        )
+        async with httpx.AsyncClient(transport=transport) as http_client:
+            client = KeitaroClient(
+                "https://tracker.test",
+                "secret-api-key",
+                http_client=http_client,
+            )
+
+            with self.assertRaisesRegex(KeitaroError, "данные для кампании"):
+                await client.list("campaigns")
+
+    async def test_campaign_streams_reject_malformed_streams(self):
+        transport = httpx.MockTransport(
+            lambda _: httpx.Response(
+                200,
+                json=[{"id": 100, "action_type": "offer", "action_options": "invalid"}],
+            )
+        )
+        async with httpx.AsyncClient(transport=transport) as http_client:
+            client = KeitaroClient(
+                "https://tracker.test",
+                "secret-api-key",
+                http_client=http_client,
+            )
+
+            with self.assertRaisesRegex(KeitaroError, "данные для потока"):
+                await client.campaign_streams(41)
+
+    async def test_metadata_list_rejects_malformed_options(self):
+        transport = httpx.MockTransport(
+            lambda _: httpx.Response(200, json={"items": [{"name": "Offer"}]})
+        )
+        async with httpx.AsyncClient(transport=transport) as http_client:
+            client = KeitaroClient(
+                "https://tracker.test",
+                "secret-api-key",
+                http_client=http_client,
+            )
+
+            with self.assertRaisesRegex(
+                KeitaroError, "данные для элемента справочника"
+            ):
+                await client.list("offers")
+
     async def test_upstream_http_failure_is_logged_and_response_body_is_hidden(self):
         response_body = "upstream internal error"
         transport = httpx.MockTransport(
