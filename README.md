@@ -51,6 +51,26 @@ docker compose up --build
 
 Остановить контейнеры можно командой `docker compose down`; для удаления также базы выполните `docker compose down -v`.
 
+### Резервное копирование и восстановление SQLite
+
+Пока Compose запущен, создайте согласованную копию базы SQLite:
+
+```bash
+sh scripts/backup-db.sh
+```
+
+Файл сохранится вне репозитория в `$XDG_DATA_HOME/keitaro-wrapper/backups` или, если `XDG_DATA_HOME` не задан, в `$HOME/.local/share/keitaro-wrapper/backups`.
+
+Для восстановления сначала остановите backend, затем скопируйте выбранную резервную копию в volume и запустите backend снова:
+
+```bash
+docker compose stop backend
+docker compose cp "$HOME/.local/share/keitaro-wrapper/backups/keitaro-wrapper-<timestamp>.db" backend:/data/keitaro_wrapper.db
+docker compose start backend
+```
+
+Перед восстановлением сохраните текущую базу отдельной копией. Если резервная копия находится в другом каталоге, укажите её фактический путь.
+
 ## Тесты
 
 Backend unit- и API-тесты выполняются на встроенном `unittest`; Keitaro и база данных в API-тестах заменены тестовыми реализациями:
