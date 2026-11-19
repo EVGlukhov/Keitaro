@@ -9,19 +9,23 @@ describe("Dialog", () => {
     render(
       <Dialog labelledBy="dialog-title" onClose={vi.fn()}>
         <h2 id="dialog-title">Dialog title</h2>
+        <button>Close dialog</button>
         <input aria-label="First field" />
         <button>Last action</button>
       </Dialog>,
     );
 
     const firstField = screen.getByRole("textbox", { name: "First field" });
+    const closeButton = screen.getByRole("button", { name: "Close dialog" });
     const lastAction = screen.getByRole("button", { name: "Last action" });
 
     expect(firstField).toHaveFocus();
     await user.tab({ shift: true });
+    expect(closeButton).toHaveFocus();
+    await user.tab({ shift: true });
     expect(lastAction).toHaveFocus();
     await user.tab();
-    expect(firstField).toHaveFocus();
+    expect(closeButton).toHaveFocus();
   });
 
   it("calls onClose when Escape is pressed", async () => {
